@@ -1,0 +1,85 @@
+镜像
+
+```shell
+#查看镜像
+docker images 
+#删除镜像
+docker rmi 镜像名称:版本/ID
+```
+
+进程
+
+```shell
+#查看进程
+docker ps
+docker ps -a #包括已经杀掉的进程
+#停止进程
+docker stop 容器名字/ID
+#开始已存在进程
+docker start 容器名字/ID
+#删除进程
+docker rm 容器名字/ID
+```
+
+创建mysql进程
+
+```shell
+docker run -dt --name=test_mysql -p 3306(宿主机的端口):3306(对应docker的端口) 
+-e MYSQL_ROOT_PASSWORD=123456
+mysql:5.7.30
+```
+
+容器
+
+```shell
+#进入容器
+docker exec -it 容器名称 /bin/bash 
+#退出容器
+exit
+```
+
+进入Mysql
+
+`mysql -uroot -p123456`
+
+**docker-compose**
+
+```yaml
+#docker-compose.yml
+version: "2"
+services:
+	mysql:
+		container_name: "sob-blog-system-mysql"
+		network_mode: "host"
+		environment:
+			MYSQL_ROOT_PASSWORD: "123456"
+			MYSQL_USER: "root"
+			MYSQL_PASS: "123456"
+		image: "mysql:5.7.30"
+		restart: always
+		ports:
+			- 3307:3306
+		volumes:
+		- "/var/lib/mysql:/home/stardust/docker/mysql/db"
+		- "/etc/mysql:/home/stardust/docker/mysql/conf"
+		- "/var/log/mysql:/home/stardust/docker/mysql/log"
+
+	
+# 运行
+docker-compose up -d
+#停止
+docker-compose down
+
+```
+
+命令行版本
+
+```shell
+docker run -p 3307:3306 --name sob-blog-system \
+-v /home/stardust/docker/mysql/db:/var/lib/mysql \
+-v /home/stardust/docker/mysql/conf:/etc/mysql \
+-v /home/stardust/docker/mysql/log:/var/log/mysql \
+-e MYSQL_ROOT_PASSWORD=123456 \
+-d mysql:5.7.30
+```
+
