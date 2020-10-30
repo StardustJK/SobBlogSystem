@@ -68,8 +68,8 @@ public class UserApi {
     /**
      * 修改密码
      */
-    @PutMapping("/password")
-    public ResponseResult updatePassword(@RequestBody SobUser sobUser) {
+    @PutMapping("/password/{userId}")
+    public ResponseResult updatePassword(@RequestBody SobUser sobUser, @PathVariable("userId") String userId) {
         return null;
     }
 
@@ -84,8 +84,8 @@ public class UserApi {
     /**
      * 修改用户信息
      */
-    @PutMapping
-    public ResponseResult updateUserInfo(@RequestBody SobUser sobUser) {
+    @PutMapping("/{userId}")
+    public ResponseResult updateUserInfo(@PathVariable("userId") String userId,@RequestBody SobUser sobUser) {
         return null;
     }
 }
