@@ -5,7 +5,7 @@ import net.stardust.blog.response.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("admin/category")
+@RequestMapping("/admin/category")
 public class CategoryAdminAPi {
 
     /**

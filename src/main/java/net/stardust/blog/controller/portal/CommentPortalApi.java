@@ -5,7 +5,7 @@ import net.stardust.blog.response.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("portal/comment")
+@RequestMapping("/portal/comment")
 public class CommentPortalApi {
     @PostMapping
     public ResponseResult postComment(@RequestBody Comment comment){
@@ -16,13 +16,9 @@ public class CommentPortalApi {
     public ResponseResult deleteComment(@PathVariable("commentId") String commentId){
         return null;
     }
-    @GetMapping("/{commentId}")
-    public ResponseResult getComment(@PathVariable("commentId") String commentId){
+    @GetMapping("/list/{articleId}")
+    public ResponseResult listComments(@PathVariable("articleId") String articleId){
         return null;
     }
 
-    @GetMapping("/list")
-    public ResponseResult listComments(@RequestParam("page") int page,@RequestParam("size") int size){
-        return null;
-    }
 }

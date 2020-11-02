@@ -4,7 +4,7 @@ import net.stardust.blog.response.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("admin/web_size_info")
+@RequestMapping("/admin/web_size_info")
 public class WebSiteInfoApi {
 
     @GetMapping("/{title}")

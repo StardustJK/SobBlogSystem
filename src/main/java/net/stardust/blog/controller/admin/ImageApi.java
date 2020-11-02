@@ -4,7 +4,7 @@ import net.stardust.blog.response.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("admin/image")
+@RequestMapping("/admin/image")
 public class ImageApi {
 
     @PostMapping

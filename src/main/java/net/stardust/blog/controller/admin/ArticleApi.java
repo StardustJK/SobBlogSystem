@@ -6,7 +6,7 @@ import net.stardust.blog.response.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("admin/article")
+@RequestMapping("/admin/article")
 public class ArticleApi {
     @PostMapping
     public ResponseResult postArticle(@RequestBody Article article){
