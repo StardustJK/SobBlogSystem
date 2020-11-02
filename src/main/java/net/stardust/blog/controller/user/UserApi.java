@@ -88,4 +88,22 @@ public class UserApi {
     public ResponseResult updateUserInfo(@PathVariable("userId") String userId,@RequestBody SobUser sobUser) {
         return null;
     }
+
+    /**
+     * 获取用户列表
+     */
+    @GetMapping("/list")
+    public ResponseResult listUsers(@RequestParam("page") int page,@RequestParam("size") int size){
+        return null;
+    }
+
+    /**
+     * 删除用户
+     */
+    @DeleteMapping("/{userId}")
+    public ResponseResult deleteUser(@PathVariable("userId") String userId){
+        return null;
+    }
+
+
 }
