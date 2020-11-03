@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 
 @Entity
 @Table(name = "tb_user")
@@ -41,10 +42,10 @@ public class SobUser {
     private String loginIp;
 
     @Column(name = "create_time")
-    private String createTime;
+    private Date createTime;
 
     @Column(name = "update_time")
-    private String updateTime;
+    private Date updateTime;
 
     public String getId() {
         return id;
@@ -126,19 +127,19 @@ public class SobUser {
         this.loginIp = loginIp;
     }
 
-    public String getCreateTime() {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
-    public String getUpdateTime() {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(String updateTime) {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 }

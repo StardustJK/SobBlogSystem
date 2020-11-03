@@ -3,12 +3,20 @@ package net.stardust.blog.controller.user;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
+import net.stardust.blog.service.IUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserApi {
+
+    @Autowired
+    private IUserService userService;
 
     /**
      * 初始化管理员账号init-admin
@@ -16,11 +24,11 @@ public class UserApi {
      * @return
      */
     @PostMapping("/admin_account")
-    public ResponseResult initManagerAccount(@RequestBody SobUser sobUser) {
+    public ResponseResult initManagerAccount(@RequestBody SobUser sobUser, HttpServletRequest request) {
         log.info("username==> " + sobUser.getUserName());
         log.info("password==> " + sobUser.getPassword());
         log.info("email==>" + sobUser.getEmail());
-        return ResponseResult.SUCCESS();
+        return userService.initManagerAccount(sobUser,request);
     }
 
     /**

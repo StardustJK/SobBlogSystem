@@ -25,6 +25,12 @@ public class ResponseResult {
     public static ResponseResult FAILED(){
         return new ResponseResult(ResponseState.FAILED);
     }
+    public static ResponseResult FAILED(String message){
+        ResponseResult responseResult=new ResponseResult(ResponseState.FAILED);
+        responseResult.setMessage(message);
+        return responseResult;
+    }
+
 
     public boolean isSuccess() {
         return success;
