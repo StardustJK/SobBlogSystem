@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Column;
+import java.util.Date;
 
 @Entity
 @Table ( name ="tb_labels" )
@@ -16,10 +17,25 @@ public class Labels {
   	@Column(name = "count" )
 	private long count;
   	@Column(name = "create_time" )
-	private java.sql.Timestamp create_time;
+	private Date createTime;
   	@Column(name = "update_time" )
-	private java.sql.Timestamp update_time;
+	private Date updateTime;
 
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	public Date getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(Date updateTime) {
+		this.updateTime = updateTime;
+	}
 
 	public String getId() {
 		return id;
@@ -45,24 +61,6 @@ public class Labels {
 
 	public void setCount(long count) {
 		this.count = count;
-	}
-
-
-	public java.sql.Timestamp getCreate_time() {
-		return create_time;
-	}
-
-	public void setCreate_time(java.sql.Timestamp create_time) {
-		this.create_time = create_time;
-	}
-
-
-	public java.sql.Timestamp getUpdate_time() {
-		return update_time;
-	}
-
-	public void setUpdate_time(java.sql.Timestamp update_time) {
-		this.update_time = update_time;
 	}
 
 }
