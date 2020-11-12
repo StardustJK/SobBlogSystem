@@ -10,6 +10,7 @@ import net.stardust.blog.utils.Constants;
 import net.stardust.blog.utils.SnowFlakeIdWorker;
 import net.stardust.blog.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +30,9 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private SettingsDao settingsDao;
+
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Override
     public ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request) {
         //检测是否初始化
@@ -55,6 +59,12 @@ public class UserServiceImpl implements IUserService {
         sobUser.setLoginIp(request.getRemoteAddr());
         sobUser.setCreateTime(new Date());
         sobUser.setUpdateTime(new Date());
+
+        //加密密码
+        String password=sobUser.getPassword();
+        String password_encode=bCryptPasswordEncoder.encode(password);
+        sobUser.setPassword(password_encode);
+
 
         //保存至数据库
         userDao.save(sobUser);
