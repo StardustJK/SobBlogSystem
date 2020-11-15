@@ -1,5 +1,6 @@
 package net.stardust.blog;
 
+import net.stardust.blog.utils.RedisUtil;
 import net.stardust.blog.utils.SnowFlakeIdWorker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,5 +24,10 @@ public class BlogApplication {
     @Bean
     public BCryptPasswordEncoder createPasswordEncoder(){
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public RedisUtil createRedisUtils(){
+        return new RedisUtil();
     }
 }
