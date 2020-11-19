@@ -303,6 +303,13 @@ public class EmailSender {
         bodyPart.setContent(html, "text/html; charset=utf-8");
         return bodyPart;
     }
+    public static void sendRegisterVerifyCode(String code,String address) throws MessagingException {
+        EmailSender.subject("Stardust's blog 注册验证码")
+                .from("Stardust's blog")
+                .text("验证码为："+code+ ",有效期为10分钟 ")
+                .to(address)
+                .send();
+    }
 }
 
 

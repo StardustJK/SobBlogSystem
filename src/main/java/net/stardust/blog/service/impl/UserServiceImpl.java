@@ -1,5 +1,6 @@
 package net.stardust.blog.service.impl;
 
+import com.sun.org.apache.bcel.internal.generic.ARETURN;
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
 import lombok.extern.slf4j.Slf4j;
@@ -9,14 +10,12 @@ import net.stardust.blog.pojo.Setting;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IUserService;
-import net.stardust.blog.utils.Constants;
-import net.stardust.blog.utils.RedisUtil;
-import net.stardust.blog.utils.SnowFlakeIdWorker;
-import net.stardust.blog.utils.TextUtils;
+import net.stardust.blog.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
@@ -24,7 +23,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Random;
-
 
 
 @Service
@@ -43,21 +41,22 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Override
     public ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request) {
         //检测是否初始化
-        Setting managerAccountState=settingsDao.findOneByKey(Constants.Settings.MANAGER_ACCOUNT_INIT_STATE);
-        if(managerAccountState!=null){
+        Setting managerAccountState = settingsDao.findOneByKey(Constants.Settings.MANAGER_ACCOUNT_INIT_STATE);
+        if (managerAccountState != null) {
             return ResponseResult.FAILED("管理员账号已经初始化");
         }
         //检查数据
-        if (TextUtils.isEmpty(sobUser.getUserName())){
+        if (TextUtils.isEmpty(sobUser.getUserName())) {
             return ResponseResult.FAILED("用户名不能为空");
         }
-        if (TextUtils.isEmpty(sobUser.getPassword())){
+        if (TextUtils.isEmpty(sobUser.getPassword())) {
             return ResponseResult.FAILED("密码不能为空");
         }
-        if (TextUtils.isEmpty(sobUser.getEmail())){
+        if (TextUtils.isEmpty(sobUser.getEmail())) {
             return ResponseResult.FAILED("邮箱不能为空");
         }
         //补充数据
@@ -71,16 +70,16 @@ public class UserServiceImpl implements IUserService {
         sobUser.setUpdateTime(new Date());
 
         //加密密码
-        String password=sobUser.getPassword();
-        String password_encode=bCryptPasswordEncoder.encode(password);
+        String password = sobUser.getPassword();
+        String password_encode = bCryptPasswordEncoder.encode(password);
         sobUser.setPassword(password_encode);
 
 
         //保存至数据库
         userDao.save(sobUser);
-        Setting setting=new Setting();
+        Setting setting = new Setting();
         setting.setKey(Constants.Settings.MANAGER_ACCOUNT_INIT_STATE);
-        setting.setId(idWorker.nextId()+"");
+        setting.setId(idWorker.nextId() + "");
         setting.setCreateTime(new Date());
         setting.setUpdateTime(new Date());
         setting.setValue("1");
@@ -138,5 +137,59 @@ public class UserServiceImpl implements IUserService {
         // 输出图片流
         specCaptcha.out(response.getOutputStream());
 
+    }
+
+    /**
+     * 发送邮箱的验证码
+     *
+     * @param request
+     * @param emailAddress
+     * @return
+     */
+    @Override
+    public ResponseResult sendEmail(HttpServletRequest request, String emailAddress) {
+        //1 防止暴力发送（不断发送）。同一个邮箱间隔要超过30s，同一个IP最多发10次（短信5次）
+        String remoteAddr = request.getRemoteAddr();
+        log.info("sendEmail == > ip == >" + remoteAddr);
+        Integer ipSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr);
+        if (ipSendTime != null || ipSendTime > 10) {
+            return ResponseResult.FAILED("发送验证码过于频繁");
+        }
+        Integer addressSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress);
+        if (addressSendTime != null || addressSendTime > 10) {
+            return ResponseResult.FAILED("发送验证码过于频繁");
+        }
+
+        //2 检查邮箱地址是否正确
+        boolean isEmailFormatOk=TextUtils.isEmailAddressValid(emailAddress);
+        if(!isEmailFormatOk){
+            return ResponseResult.FAILED("邮箱地址不正确");
+        }
+
+
+        //3 发送验证码6位数100000-999999
+        int code=random.nextInt(999999);
+        if(code<100000){
+            code+=100000;
+        }
+        log.info("sendEmail code == > "+code);
+        try {
+            EmailSender.sendRegisterVerifyCode(code+"",emailAddress);
+        } catch (MessagingException e) {
+            return ResponseResult.FAILED("验证码发送失败，请稍后重试");
+        }
+
+        //4 做记录 发送记录和code
+        if(ipSendTime==null){
+            ipSendTime=0;
+        }
+        ipSendTime++;
+        //一小时有效期
+        redisUtil.set(Constants.User.KEY_EMAIL_SEND_IP+remoteAddr,ipSendTime,60*60);
+        redisUtil.set(Constants.User.KEY_EMAIL_SEND_ADDRESS+emailAddress,"send",30);
+        //保存code
+
+
+        return null;
     }
 }
