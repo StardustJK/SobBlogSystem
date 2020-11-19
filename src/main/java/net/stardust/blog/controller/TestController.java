@@ -39,6 +39,8 @@ public class TestController {
     @GetMapping("/hello")
     public ResponseResult hello() {
         log.info("hello world");
+        String captha=(String )redisUtil.get(Constants.User.KEY_CAPTCHA_CONTENT+"123456");
+        log.info("captha==>"+captha);
         return ResponseResult.SUCCESS("登陆成功");
     }
 
@@ -83,6 +85,8 @@ public class TestController {
     }
     @Autowired
     private RedisUtil redisUtil;
+
+
 
     @RequestMapping("/captcha")
     public void captcha(HttpServletRequest request, HttpServletResponse response) throws Exception {

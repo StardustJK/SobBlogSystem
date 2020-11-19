@@ -5,8 +5,10 @@ import net.stardust.blog.response.ResponseResult;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public interface IUserService {
 
     ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request);
+    void createCaptcha(HttpServletResponse response,String captchaKey) throws Exception;
 }

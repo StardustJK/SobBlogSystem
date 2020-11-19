@@ -1,14 +1,21 @@
 package net.stardust.blog.controller.user;
 
+import com.wf.captcha.SpecCaptcha;
+import com.wf.captcha.base.Captcha;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IUserService;
+import net.stardust.blog.utils.Constants;
+import net.stardust.blog.utils.RedisUtil;
+import net.stardust.blog.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
+import java.io.IOException;
 
 @Slf4j
 @RestController
@@ -28,7 +35,7 @@ public class UserApi {
         log.info("username==> " + sobUser.getUserName());
         log.info("password==> " + sobUser.getPassword());
         log.info("email==>" + sobUser.getEmail());
-        return userService.initManagerAccount(sobUser,request);
+        return userService.initManagerAccount(sobUser, request);
     }
 
     /**
@@ -40,6 +47,20 @@ public class UserApi {
 
     @PostMapping
     public ResponseResult register(@RequestBody SobUser sobUser) {
+        //1.检查当前用户名是否被注册
+
+        //2.检查邮箱格式是否正确
+
+        //3.检查该邮箱是否被注册
+
+        //4.检查邮箱验证码是否正确
+
+        //5.检查图灵验证码是否正确
+
+        //6 对密码进行加密
+        //7 补全数据
+        //8 存数据
+        //9 返回结果
         return null;
     }
 
@@ -52,14 +73,21 @@ public class UserApi {
         return null;
     }
 
+
+
     /**
      * 获取图灵验证码
+     * 有效时长 10分钟
      *
      * @return
      */
     @GetMapping("/captcha")
-    public ResponseResult getCaptcha() {
-        return null;
+    public void getCaptcha(HttpServletResponse response, @RequestParam("captcha_key") String captchaKey) throws IOException, FontFormatException {
+        try{
+            userService.createCaptcha(response,captchaKey);
+        }catch (Exception e){
+            log.error(e.toString());
+        }
     }
 
     /**
@@ -93,7 +121,7 @@ public class UserApi {
      * 修改用户信息
      */
     @PutMapping("/{userId}")
-    public ResponseResult updateUserInfo(@PathVariable("userId") String userId,@RequestBody SobUser sobUser) {
+    public ResponseResult updateUserInfo(@PathVariable("userId") String userId, @RequestBody SobUser sobUser) {
         return null;
     }
 
@@ -101,7 +129,7 @@ public class UserApi {
      * 获取用户列表
      */
     @GetMapping("/list")
-    public ResponseResult listUsers(@RequestParam("page") int page,@RequestParam("size") int size){
+    public ResponseResult listUsers(@RequestParam("page") int page, @RequestParam("size") int size) {
         return null;
     }
 
@@ -109,7 +137,7 @@ public class UserApi {
      * 删除用户
      */
     @DeleteMapping("/{userId}")
-    public ResponseResult deleteUser(@PathVariable("userId") String userId){
+    public ResponseResult deleteUser(@PathVariable("userId") String userId) {
         return null;
     }
 
