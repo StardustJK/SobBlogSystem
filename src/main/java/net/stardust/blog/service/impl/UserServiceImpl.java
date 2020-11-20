@@ -151,45 +151,49 @@ public class UserServiceImpl implements IUserService {
         //1 防止暴力发送（不断发送）。同一个邮箱间隔要超过30s，同一个IP最多发10次（短信5次）
         String remoteAddr = request.getRemoteAddr();
         log.info("sendEmail == > ip == >" + remoteAddr);
-        Integer ipSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr);
-        if (ipSendTime != null || ipSendTime > 10) {
-            return ResponseResult.FAILED("发送验证码过于频繁");
+        if (remoteAddr != null) {
+            remoteAddr=remoteAddr.replaceAll(":","-");
         }
-        Integer addressSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress);
-        if (addressSendTime != null || addressSendTime > 10) {
-            return ResponseResult.FAILED("发送验证码过于频繁");
+        Integer ipSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr);
+        log.info("ipsendtime==>"+ipSendTime);
+        if (ipSendTime != null && ipSendTime > 10) {
+            return ResponseResult.FAILED("发送验证码过于频繁1");
+        }
+        Object hasEmailSend = redisUtil.get(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress);
+        if (hasEmailSend != null ) {
+            return ResponseResult.FAILED("发送验证码过于频繁2");
         }
 
         //2 检查邮箱地址是否正确
-        boolean isEmailFormatOk=TextUtils.isEmailAddressValid(emailAddress);
-        if(!isEmailFormatOk){
+        boolean isEmailFormatOk = TextUtils.isEmailAddressValid(emailAddress);
+        if (!isEmailFormatOk) {
             return ResponseResult.FAILED("邮箱地址不正确");
         }
 
 
         //3 发送验证码6位数100000-999999
-        int code=random.nextInt(999999);
-        if(code<100000){
-            code+=100000;
+        int code = random.nextInt(999999);
+        if (code < 100000) {
+            code += 100000;
         }
-        log.info("sendEmail code == > "+code);
+        log.info("sendEmail code == > " + code);
         try {
-            EmailSender.sendRegisterVerifyCode(code+"",emailAddress);
+            EmailSender.sendRegisterVerifyCode(code + "", emailAddress);
         } catch (MessagingException e) {
             return ResponseResult.FAILED("验证码发送失败，请稍后重试");
         }
 
         //4 做记录 发送记录和code
-        if(ipSendTime==null){
-            ipSendTime=0;
+        if (ipSendTime == null) {
+            ipSendTime = 0;
         }
         ipSendTime++;
         //一小时有效期
-        redisUtil.set(Constants.User.KEY_EMAIL_SEND_IP+remoteAddr,ipSendTime,60*60);
-        redisUtil.set(Constants.User.KEY_EMAIL_SEND_ADDRESS+emailAddress,"send",30);
+        redisUtil.set(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr, ipSendTime+"", 60 * 60);
+        redisUtil.set(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress, "true", 30);
         //保存code
+        redisUtil.set(Constants.User.KEY_EMAIL_CODE_CONTENT, code+"", 60 * 10);
 
-
-        return null;
+        return ResponseResult.SUCCESS("验证码发送成功");
     }
 }
