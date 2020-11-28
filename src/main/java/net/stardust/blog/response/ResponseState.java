@@ -3,8 +3,9 @@ package net.stardust.blog.response;
 public enum ResponseState {
     SUCCESS(true,20000,"操作成功"),
     FAILED(false,40000,"操作失败"),
+    JOIN_IN_SUCCESS(true,20001,"注册成功"),
     LOGIN_FAILED(false,49999,"登录失败"),
-    LOGIN_SUCCES(true,20001,"登陆成功"),
+    LOGIN_SUCCESS(true,20001,"登陆成功"),
     GET_RESOURCE_FAILED(false,40001,"获取资源失败");
 
     ResponseState(boolean success,int code,String message){

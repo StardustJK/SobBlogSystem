@@ -46,22 +46,13 @@ public class UserApi {
      */
 
     @PostMapping
-    public ResponseResult register(@RequestBody SobUser sobUser) {
-        //1.检查当前用户名是否被注册
+    public ResponseResult register(@RequestBody SobUser sobUser,
+                                   @RequestParam("email_code") String emailCode,
+                                   @RequestParam("captcha_code")String captchaCode,
+                                   @RequestParam("captcha_key") String captchaKey,
+                                   HttpServletRequest request) {
+        return userService.register(sobUser,emailCode,captchaCode,captchaKey,request);
 
-        //2.检查邮箱格式是否正确
-
-        //3.检查该邮箱是否被注册
-
-        //4.检查邮箱验证码是否正确
-
-        //5.检查图灵验证码是否正确
-
-        //6 对密码进行加密
-        //7 补全数据
-        //8 存数据
-        //9 返回结果
-        return null;
     }
 
     /**
@@ -92,13 +83,18 @@ public class UserApi {
 
     /**
      * 发送邮件
-     *
+     * 使用场景：
+     *  注册
+     *  找回密码
+     *  修改邮箱
      * @return
      */
     @GetMapping("/verify_code")
-    public ResponseResult sendVerifyCode(HttpServletRequest request,@RequestParam("email") String emailAddress) {
+    public ResponseResult sendVerifyCode(HttpServletRequest request,
+                                         @RequestParam("type") String type,
+                                         @RequestParam("email") String emailAddress) {
         log.info(emailAddress);
-        return userService.sendEmail(request,emailAddress);
+        return userService.sendEmail(type,request,emailAddress);
     }
 
     /**

@@ -1,6 +1,5 @@
 package net.stardust.blog.service.impl;
 
-import com.sun.org.apache.bcel.internal.generic.ARETURN;
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +8,7 @@ import net.stardust.blog.dao.UserDao;
 import net.stardust.blog.pojo.Setting;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
+import net.stardust.blog.response.ResponseState;
 import net.stardust.blog.service.IUserService;
 import net.stardust.blog.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,20 +150,35 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     @Override
-    public ResponseResult sendEmail(HttpServletRequest request, String emailAddress) {
+    public ResponseResult sendEmail(String type, HttpServletRequest request, String emailAddress) {
+        if (emailAddress == null) {
+            return ResponseResult.FAILED("邮箱地址不可以为空");
+        }
+        //根据类型查询邮箱是否存在
+        if (type.equals("register") || type.equals("update")) {
+            SobUser userByEmail = userDao.findOneByEmail(emailAddress);
+            if (userByEmail != null) {
+                return ResponseResult.FAILED("该邮箱已注册");
+            }
+        } else if (type.equals("forget")) {
+            SobUser userByEmail = userDao.findOneByEmail(emailAddress);
+            if (userByEmail == null) {
+                return ResponseResult.FAILED("该邮箱未注册");
+            }
+        }
         //1 防止暴力发送（不断发送）。同一个邮箱间隔要超过30s，同一个IP最多发10次（短信5次）
         String remoteAddr = request.getRemoteAddr();
         log.info("sendEmail == > ip == >" + remoteAddr);
         if (remoteAddr != null) {
-            remoteAddr=remoteAddr.replaceAll(":","-");
+            remoteAddr = remoteAddr.replaceAll(":", "-");
         }
         Integer ipSendTime = (Integer) redisUtil.get(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr);
-        log.info("ipsendtime==>"+ipSendTime);
+        log.info("ipsendtime==>" + ipSendTime);
         if (ipSendTime != null && ipSendTime > 10) {
             return ResponseResult.FAILED("发送验证码过于频繁1");
         }
         Object hasEmailSend = redisUtil.get(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress);
-        if (hasEmailSend != null ) {
+        if (hasEmailSend != null) {
             return ResponseResult.FAILED("发送验证码过于频繁2");
         }
 
@@ -181,7 +196,7 @@ public class UserServiceImpl implements IUserService {
         }
         log.info("sendEmail code == > " + code);
         try {
-            taskService.sendEmailVerifyCode(code+"",emailAddress);
+            taskService.sendEmailVerifyCode(code + "", emailAddress);
         } catch (MessagingException e) {
             return ResponseResult.FAILED("验证码发送失败，请稍后重试");
         }
@@ -192,11 +207,78 @@ public class UserServiceImpl implements IUserService {
         }
         ipSendTime++;
         //一小时有效期
-        redisUtil.set(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr, ipSendTime+"", 60 * 60);
+        redisUtil.set(Constants.User.KEY_EMAIL_SEND_IP + remoteAddr, ipSendTime + "", 60 * 60);
         redisUtil.set(Constants.User.KEY_EMAIL_SEND_ADDRESS + emailAddress, "true", 30);
         //保存code
-        redisUtil.set(Constants.User.KEY_EMAIL_CODE_CONTENT, code+"", 60 * 10);
+        redisUtil.set(Constants.User.KEY_EMAIL_CODE_CONTENT + emailAddress, code + "", 60 * 10);
 
         return ResponseResult.SUCCESS("验证码发送成功");
+    }
+
+    @Override
+    public ResponseResult register(SobUser sobUser, String emailCode, String captchaCode, String captchaKey, HttpServletRequest request) {
+        //1.检查当前用户名是否被注册
+        String userName = sobUser.getUserName();
+        if (TextUtils.isEmpty(userName)) {
+            return ResponseResult.FAILED("用户名不可以为空");
+        }
+        SobUser userByName = userDao.findOneByUserName(userName);
+        if (userByName != null) {
+            return ResponseResult.FAILED("该用户名已注册");
+        }
+        //2.检查邮箱格式是否正确
+        String email = sobUser.getEmail();
+        if (TextUtils.isEmpty(email)) {
+            return ResponseResult.FAILED("邮箱地址不可以为空");
+        }
+        if (TextUtils.isEmailAddressValid(email)) {
+            return ResponseResult.FAILED("邮箱格式不正确");
+        }
+
+        //3.检查该邮箱是否被注册
+        SobUser userByEmail = userDao.findOneByEmail(email);
+        if (userByEmail == null) {
+            return ResponseResult.FAILED("该邮箱已被注册");
+        }
+        //4.检查邮箱验证码是否正确
+        String emailVerifyCode = (String) redisUtil.get(Constants.User.KEY_EMAIL_CODE_CONTENT + email);
+//        if(TextUtils.isEmailAddressValid(emailVerifyCode)){
+//            return ResponseResult.FAILED("")
+//        }
+        if (emailVerifyCode.equals(emailCode)) {
+            return ResponseResult.FAILED("邮箱验证码不正确");
+        } else {
+            //正确，删掉redis里面的内容
+            redisUtil.del(Constants.User.KEY_EMAIL_CODE_CONTENT + email);
+        }
+        //5.检查图灵验证码是否正确
+        String captchaVerifyCode = (String)redisUtil.get(Constants.User.KEY_CAPTCHA_CONTENT + captchaKey);
+        if (TextUtils.isEmpty(captchaVerifyCode)) {
+            return ResponseResult.FAILED("人类验证码过期");
+        }
+        if (!captchaVerifyCode.equals(captchaCode)) {
+            return ResponseResult.FAILED("人类验证码不正确");
+        }
+        else {
+            redisUtil.del(Constants.User.KEY_CAPTCHA_CONTENT + captchaKey);
+        }
+        //6 对密码进行加密
+        String password = sobUser.getPassword();
+        if (TextUtils.isEmpty(password)) {
+            return ResponseResult.FAILED("密码不能为空");
+        }
+        sobUser.setPassword(bCryptPasswordEncoder.encode(sobUser.getPassword()));
+        //7 补全数据
+        String ipAddress = request.getRemoteAddr();
+        sobUser.setRegIp(ipAddress);
+        sobUser.setLoginIp(ipAddress);
+        sobUser.setUpdateTime(new Date());
+        sobUser.setCreateTime(new Date());
+        sobUser.setAvatar(Constants.User.DEFAULT_AVATAR);
+        sobUser.setRoles(Constants.User.ROLE_NORMAL);
+        //8 存数据
+        userDao.save(sobUser);
+        //9 返回结果
+        return ResponseResult.GET(ResponseState.JOIN_IN_SUCCESS);
     }
 }
