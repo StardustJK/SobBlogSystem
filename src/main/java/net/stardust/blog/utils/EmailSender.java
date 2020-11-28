@@ -281,6 +281,7 @@ public class EmailSender {
             msg.setContent(content);
             msg.setSentDate(new Date());
             Transport.send(msg);
+            log.info("email send...");
         } catch (Exception e) {
             e.printStackTrace();
         }

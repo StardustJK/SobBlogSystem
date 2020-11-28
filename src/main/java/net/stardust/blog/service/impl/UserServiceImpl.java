@@ -139,6 +139,9 @@ public class UserServiceImpl implements IUserService {
 
     }
 
+    @Autowired
+    TaskService taskService;
+
     /**
      * 发送邮箱的验证码
      *
@@ -178,7 +181,7 @@ public class UserServiceImpl implements IUserService {
         }
         log.info("sendEmail code == > " + code);
         try {
-            EmailSender.sendRegisterVerifyCode(code + "", emailAddress);
+            taskService.sendEmailVerifyCode(code+"",emailAddress);
         } catch (MessagingException e) {
             return ResponseResult.FAILED("验证码发送失败，请稍后重试");
         }
