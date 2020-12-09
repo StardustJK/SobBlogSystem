@@ -1,14 +1,9 @@
 package net.stardust.blog.controller.user;
 
-import com.wf.captcha.SpecCaptcha;
-import com.wf.captcha.base.Captcha;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IUserService;
-import net.stardust.blog.utils.Constants;
-import net.stardust.blog.utils.RedisUtil;
-import net.stardust.blog.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,13 +63,13 @@ public class UserApi {
      * @param sobUser 封装了账号和密码
      * @return
      */
-    @PostMapping("/{captcha}")
-    public ResponseResult signIn(@PathVariable("captcha_key")String captchaKey,
-                                 @PathVariable String captcha,
-                                 @RequestBody SobUser sobUser,
-                                 HttpServletRequest request,
-                                 HttpServletResponse response) {
-        return userService.signIn(captcha,captchaKey,sobUser,request,response);
+    @PostMapping("/{captcha}/{captcha_key}")
+    public ResponseResult logIn(@PathVariable("captcha_key")String captchaKey,
+                                @PathVariable String captcha,
+                                @RequestBody SobUser sobUser,
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
+        return userService.logIn(captcha,captchaKey,sobUser,request,response);
     }
 
 

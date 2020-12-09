@@ -14,14 +14,19 @@ import net.stardust.blog.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import sun.security.krb5.internal.crypto.CksumType;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -41,6 +46,7 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private String userName;
 
     @Override
     public ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request) {
@@ -294,7 +300,7 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     @Override
-    public ResponseResult signIn(String captcha, String captchaKey, SobUser sobUser, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseResult logIn(String captcha, String captchaKey, SobUser sobUser, HttpServletRequest request, HttpServletResponse response) {
 
         String captchaValue = (String) redisUtil.get(Constants.User.KEY_CAPTCHA_CONTENT + captchaKey);
         //todo 取到的captchaValue为空呢？
@@ -323,12 +329,38 @@ public class UserServiceImpl implements IUserService {
         //用户存在
         //对比密码
         boolean matches = bCryptPasswordEncoder.matches(password, userFromDb.getPassword());
-        if(!matches){
+        if (!matches) {
             return ResponseResult.FAILED("用户名或者密码错误");
         }
         //密码正确
+        //判断用户状态，如果是非正常的，则返回结果
+        if (!"1".equals(userFromDb.getState())) {
+            return ResponseResult.FAILED("该账号已被禁止");
+        }
         //TODO:生成token
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", userFromDb.getId());
+        claims.put("user_name", userFromDb.getUserName());
+        claims.put("roles", userFromDb.getRoles());
+        claims.put("avatar", userFromDb.getAvatar());
+        claims.put("email", userFromDb.getEmail());
+        claims.put("sign", userFromDb.getSign());
+        //默认2小时有效
+        String token = JwtUtil.createToken(claims);
+        //返回token的md5，token保存在redis
+        //如果前端访问的时候携带token的md5key,从redis获取即可
+        String tokenKey = DigestUtils.md5DigestAsHex(token.getBytes());
+        //保存token到redis,有效期2h
+        redisUtil.set(Constants.User.KEY_TOKEN + tokenKey, token, 60 * 60 * 2);
 
-        return null;
+        //把tokenKey写到cookies
+        Cookie cookie = new Cookie("sob_blog_token", tokenKey);
+        //todo 从request动态获取
+        cookie.setDomain("localhost");
+        cookie.setMaxAge(60 * 60 * 24 * 365);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        return ResponseResult.SUCCESS("登录成功");
     }
 }
