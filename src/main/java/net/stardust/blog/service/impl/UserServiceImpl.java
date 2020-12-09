@@ -231,21 +231,21 @@ public class UserServiceImpl implements IUserService {
         if (TextUtils.isEmpty(email)) {
             return ResponseResult.FAILED("邮箱地址不可以为空");
         }
-        if (TextUtils.isEmailAddressValid(email)) {
+        if (!TextUtils.isEmailAddressValid(email)) {
             return ResponseResult.FAILED("邮箱格式不正确");
         }
 
         //3.检查该邮箱是否被注册
         SobUser userByEmail = userDao.findOneByEmail(email);
-        if (userByEmail == null) {
+        if (userByEmail != null) {
             return ResponseResult.FAILED("该邮箱已被注册");
         }
         //4.检查邮箱验证码是否正确
         String emailVerifyCode = (String) redisUtil.get(Constants.User.KEY_EMAIL_CODE_CONTENT + email);
-//        if(TextUtils.isEmailAddressValid(emailVerifyCode)){
-//            return ResponseResult.FAILED("")
-//        }
-        if (emailVerifyCode.equals(emailCode)) {
+        if(TextUtils.isEmpty(emailVerifyCode)){
+            return ResponseResult.FAILED("邮箱验证码已过期");
+        }
+        if (!emailVerifyCode.equals(emailCode)) {
             return ResponseResult.FAILED("邮箱验证码不正确");
         } else {
             //正确，删掉redis里面的内容
@@ -276,6 +276,8 @@ public class UserServiceImpl implements IUserService {
         sobUser.setCreateTime(new Date());
         sobUser.setAvatar(Constants.User.DEFAULT_AVATAR);
         sobUser.setRoles(Constants.User.ROLE_NORMAL);
+        sobUser.setId(idWorker.nextId()+"");
+        sobUser.setState("1");
         //8 存数据
         userDao.save(sobUser);
         //9 返回结果

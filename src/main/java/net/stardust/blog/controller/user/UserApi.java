@@ -51,6 +51,7 @@ public class UserApi {
                                    @RequestParam("captcha_code")String captchaCode,
                                    @RequestParam("captcha_key") String captchaKey,
                                    HttpServletRequest request) {
+        log.info("emailCode:"+emailCode);
         return userService.register(sobUser,emailCode,captchaCode,captchaKey,request);
 
     }
