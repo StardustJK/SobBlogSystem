@@ -57,12 +57,24 @@ public class UserApi {
     }
 
     /**
-     * 登陆
+     * 登录
+     * 需要提交的数据
+     * 1.用户的账号：昵称/邮箱（唯一）
+     * 2.用户密码
+     * 3.图灵验证码
+     * 4.图灵验证码的key
+     * @param captcha_key 图灵验证码的 key
+     * @param captcha 图灵验证码
+     * @param sobUser 封装了账号和密码
+     * @return
      */
-
     @PostMapping("/{captcha}")
-    public ResponseResult login(@PathVariable String captcha, @RequestBody SobUser sobUser) {
-        return null;
+    public ResponseResult signIn(@PathVariable("captcha_key")String captchaKey,
+                                 @PathVariable String captcha,
+                                 @RequestBody SobUser sobUser,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response) {
+        return userService.signIn(captcha,captchaKey,sobUser,request,response);
     }
 
 
