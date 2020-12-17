@@ -53,14 +53,16 @@ public class UserApi {
 
     /**
      * 登录
-     * 需要提交的数据
-     * 1.用户的账号：昵称/邮箱（唯一）
-     * 2.用户密码
-     * 3.图灵验证码
-     * 4.图灵验证码的key
-     * @param captcha_key 图灵验证码的 key
-     * @param captcha 图灵验证码
-     * @param sobUser 封装了账号和密码
+     *      * 需要提交的数据
+     *      * 1.用户的账号：昵称/邮箱（唯一）
+     *      * 2.用户密码
+     *      * 3.图灵验证码
+     *      * 4.图灵验证码的key
+     * @param captchaKey
+     * @param captcha
+     * @param sobUser
+     * @param request
+     * @param response
      * @return
      */
     @PostMapping("/{captcha}/{captcha_key}")
@@ -118,7 +120,7 @@ public class UserApi {
      */
     @GetMapping("/{userId}")
     public ResponseResult getUserInfo(@PathVariable("userId") String userId) {
-        return null;
+        return userService.getUserInfo(userId);
     }
 
     /**

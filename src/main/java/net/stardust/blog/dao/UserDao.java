@@ -20,6 +20,13 @@ public interface UserDao extends JpaRepository<SobUser,String>, JpaSpecification
      * @return
      */
     SobUser findOneByEmail(String email);
+    /**
+     * 通过userId查找
+     * @param userId
+     * @return
+     */
+    SobUser findOneById(String userId);
+
 
 
 }

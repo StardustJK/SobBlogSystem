@@ -1,10 +1,14 @@
 package net.stardust.blog.service.impl;
 
+import com.google.gson.Gson;
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import net.stardust.blog.dao.RefreshTokenDao;
 import net.stardust.blog.dao.SettingsDao;
 import net.stardust.blog.dao.UserDao;
+import net.stardust.blog.pojo.RefreshToken;
 import net.stardust.blog.pojo.Setting;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
@@ -47,6 +51,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private String userName;
+
+    @Autowired
+    private Gson gson;
 
     @Override
     public ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request) {
@@ -139,7 +146,7 @@ public class UserServiceImpl implements IUserService {
         String content = specCaptcha.text().toLowerCase();
         log.info("captcha content == > " + content);
         //验证码存入redis
-        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT + key, content, 60 * 10);
+        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT + key, content, Constants.TimeValue.MIN * 10);
         // 输出图片流
         specCaptcha.out(response.getOutputStream());
 
@@ -289,6 +296,9 @@ public class UserServiceImpl implements IUserService {
         return ResponseResult.GET(ResponseState.JOIN_IN_SUCCESS);
     }
 
+    @Autowired
+    private RefreshTokenDao refreshTokenDao;
+
     /**
      * 登录的实现 sign-in
      *
@@ -337,30 +347,115 @@ public class UserServiceImpl implements IUserService {
         if (!"1".equals(userFromDb.getState())) {
             return ResponseResult.FAILED("该账号已被禁止");
         }
-        //TODO:生成token
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", userFromDb.getId());
-        claims.put("user_name", userFromDb.getUserName());
-        claims.put("roles", userFromDb.getRoles());
-        claims.put("avatar", userFromDb.getAvatar());
-        claims.put("email", userFromDb.getEmail());
-        claims.put("sign", userFromDb.getSign());
+        createToken(response, userFromDb);
+        return ResponseResult.SUCCESS("登录成功");
+    }
+
+    private String createToken(HttpServletResponse response, SobUser userFromDb) {
+        refreshTokenDao.deleteAllByUserId(userFromDb.getId());
+        Map<String, Object> claims = ClaimsUtils.sobUser2Claims(userFromDb);
         //默认2小时有效
         String token = JwtUtil.createToken(claims);
         //返回token的md5，token保存在redis
         //如果前端访问的时候携带token的md5key,从redis获取即可
         String tokenKey = DigestUtils.md5DigestAsHex(token.getBytes());
         //保存token到redis,有效期2h
-        redisUtil.set(Constants.User.KEY_TOKEN + tokenKey, token, 60 * 60 * 2);
+        redisUtil.set(Constants.User.KEY_TOKEN + tokenKey, token, Constants.TimeValue.HOUR * 2);
 
         //把tokenKey写到cookies
-        Cookie cookie = new Cookie("sob_blog_token", tokenKey);
-        //todo 从request动态获取
-        cookie.setDomain("localhost");
-        cookie.setMaxAge(60 * 60 * 24 * 365);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
-        return ResponseResult.SUCCESS("登录成功");
+        //从request动态获取
+        CookieUtils.setUpCookie(response, Constants.User.COOKIE_TOKEN_KEY, tokenKey);
+        //生成RefreshToken
+        String refreshTokenValue = JwtUtil.createRefreshToken(userFromDb.getId(), Constants.TimeValue.MONTH*1000);
+        //保存到数据库
+        //refreshToken,tokenKey,用户ID，创建时间，更新时间
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setId(idWorker.nextId() + "");
+        refreshToken.setRefreshToken(refreshTokenValue);
+        refreshToken.setUserId(userFromDb.getId());
+        refreshToken.setTokenKey(tokenKey);
+        refreshToken.setCreateTime(new Date());
+        refreshToken.setUpdateTime(new Date());
+        refreshTokenDao.save(refreshToken);
+        return tokenKey;
     }
+
+    /**
+     * 通过携带的tokenkey检查用户是否有登录，如果登录了就返回用户信息
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+    @Override
+    public SobUser checkSobUser(HttpServletRequest request, HttpServletResponse response) {
+        //拿到token_key
+        String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
+        log.info("tokenKey==> "+tokenKey);
+        SobUser sobUser = parseByTokenKey(tokenKey);
+        if (sobUser == null) {
+            //解析出错->过期了
+            //1.去mysql查refreshtoken
+            RefreshToken refreshToken = refreshTokenDao.findOneByTokenKey(tokenKey);
+            //2.不存在，则没登陆
+            if (refreshToken == null) {
+                log.info("refreshToken为空");
+                return null;
+            }
+            //3.存在，解析refreshtoken，
+            try {
+                JwtUtil.parseJWT(refreshToken.getRefreshToken());
+                //有效，创建新的token和refreshToken
+                String userId = refreshToken.getUserId();
+                SobUser userFromDb = userDao.findOneById(userId);
+                String newTokenKey = createToken(response, userFromDb);
+                log.info("创建了新的refreshToken和Token");
+                return parseByTokenKey(newTokenKey);
+            } catch (Exception e1) {
+                //4.refreshtoken过期了，提示用户登录
+                log.info("refreshToken过期");
+                return null;
+
+            }
+        }
+
+        return sobUser;
+    }
+
+    @Override
+    public ResponseResult getUserInfo(String userId) {
+        //从数据库获取
+        SobUser userFromDb = userDao.findOneById(userId);
+        if(userFromDb==null){
+            return ResponseResult.FAILED("用户不存在");
+        }
+        //克隆，清除敏感信息(一定要克隆！不然就修改数据库里面的内容)
+        String userJson = gson.toJson(userFromDb);
+        SobUser newUser= gson.fromJson(userJson,SobUser.class);
+        newUser.setPassword("");
+        newUser.setEmail("");
+        newUser.setRegIp("");
+        newUser.setLoginIp("");
+        return ResponseResult.SUCCESS("获取成功").setData(newUser);
+
+
+
+    }
+
+    private SobUser parseByTokenKey(String tokenKey) {
+        String token = (String) redisUtil.get(Constants.User.KEY_TOKEN+tokenKey);
+        if (token != null) {
+            try {
+                Claims claims = JwtUtil.parseJWT(token);
+                Date expiration = claims.getExpiration();
+                return ClaimsUtils.claims2SobUser(claims);
+            } catch (Exception e) {
+                log.info("parseByTokenKey过期了");
+                return null;
+            }
+
+        }
+        return null;
+    }
+
 }

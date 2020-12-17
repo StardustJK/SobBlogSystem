@@ -2,14 +2,17 @@ package net.stardust.blog.controller;
 
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
+import io.jsonwebtoken.Claims;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.stardust.blog.dao.CommentDao;
 import net.stardust.blog.dao.LabelDao;
+import net.stardust.blog.pojo.Comment;
 import net.stardust.blog.pojo.Labels;
+import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
-import net.stardust.blog.utils.Constants;
-import net.stardust.blog.utils.RedisUtil;
-import net.stardust.blog.utils.SnowFlakeIdWorker;
+import net.stardust.blog.service.impl.UserServiceImpl;
+import net.stardust.blog.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,8 +42,8 @@ public class TestController {
     @GetMapping("/hello")
     public ResponseResult hello() {
         log.info("hello world");
-        String captha=(String )redisUtil.get(Constants.User.KEY_CAPTCHA_CONTENT+"123456");
-        log.info("captha==>"+captha);
+        String captha = (String) redisUtil.get(Constants.User.KEY_CAPTCHA_CONTENT + "123456");
+        log.info("captha==>" + captha);
         return ResponseResult.SUCCESS("登陆成功");
     }
 
@@ -58,34 +61,35 @@ public class TestController {
         if (page < 1) {
             page = 1;
         }
-        if(size<1){
-            size= Constants.DEFAULT_SIZE;
+        if (size < 1) {
+            size = Constants.DEFAULT_SIZE;
         }
-        Sort sort=new Sort(Sort.Direction.DESC,"createTime");
-        Pageable pageable = PageRequest.of(page - 1, size,sort);
-        Page<Labels> result=labelDao.findAll(pageable);
+        Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Page<Labels> result = labelDao.findAll(pageable);
         return ResponseResult.SUCCESS("获取成功").setData(result);
 
     }
+
     @GetMapping("/label/search")
-    public ResponseResult fuzzySearch(@RequestParam("keyword") String keyword , @RequestParam("count") int count){
-        List<Labels> all=labelDao.findAll(new Specification<Labels>() {
+    public ResponseResult fuzzySearch(@RequestParam("keyword") String keyword, @RequestParam("count") int count) {
+        List<Labels> all = labelDao.findAll(new Specification<Labels>() {
             @Override
             public Predicate toPredicate(Root<Labels> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                Predicate namePre=criteriaBuilder.like(root.get("name").as(String.class),"%"+keyword+"%");
-                Predicate countPre=criteriaBuilder.equal(root.get("name").as(Integer.class),count);
-                Predicate and=criteriaBuilder.and(namePre,countPre);
+                Predicate namePre = criteriaBuilder.like(root.get("name").as(String.class), "%" + keyword + "%");
+                Predicate countPre = criteriaBuilder.equal(root.get("name").as(Integer.class), count);
+                Predicate and = criteriaBuilder.and(namePre, countPre);
                 return and;
             }
         });
-        if(all.size()==0){
+        if (all.size() == 0) {
             return ResponseResult.FAILED("结果为空");
         }
         return ResponseResult.SUCCESS("查询成功").setData(all);
     }
+
     @Autowired
     private RedisUtil redisUtil;
-
 
 
     @RequestMapping("/captcha")
@@ -110,11 +114,45 @@ public class TestController {
         // 验证码存入session
 //        request.getSession().setAttribute("captcha", content);
         //验证码存入redis
-        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT+"123456",content,60*10);
+        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT + "123456", content, 60 * 10);
         // 输出图片流
         specCaptcha.out(response.getOutputStream());
     }
 
 
+    @Autowired
+    private CommentDao commentDao;
 
+    @Autowired
+    private UserServiceImpl userService;
+    @PostMapping("/comment")
+    public ResponseResult testComment(@RequestBody Comment comment, HttpServletRequest request,HttpServletResponse response) {
+        String content = comment.getContent();
+        log.info("comment content == >" + content);
+        String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
+        if (tokenKey == null) {
+            return ResponseResult.FAILED("账号未登录");
+        }
+        String token=(String)redisUtil.get(Constants.User.KEY_TOKEN+tokenKey);
+        if(token==null){
+            //过期了，查refreshToken
+            //如果refreshToken也不存在，告诉用户未登录
+
+        }
+        SobUser sobUser = userService.checkSobUser(request, response);
+        if (sobUser == null) {
+            return ResponseResult.FAILED("账号未登录");
+        }
+        comment.setUserId(sobUser.getId());
+        comment.setUserAvatar(sobUser.getAvatar());
+        comment.setUserName(sobUser.getUserName());
+        comment.setCreateTime(new Date());
+        comment.setUpdateTime(new Date());
+        comment.setId(idWorker.nextId()+"");
+        commentDao.save(comment);
+        return ResponseResult.SUCCESS("评论成功");
+
+
+
+    }
 }
