@@ -23,4 +23,6 @@ public interface IUserService {
     ResponseResult checkEmail(String email);
 
     ResponseResult checkUserName(String userName);
+
+    ResponseResult updateUserInfo(String userId, SobUser sobUser, HttpServletResponse response, HttpServletRequest request);
 }

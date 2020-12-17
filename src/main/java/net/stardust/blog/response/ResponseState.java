@@ -6,7 +6,9 @@ public enum ResponseState {
     JOIN_IN_SUCCESS(true,20001,"注册成功"),
     LOGIN_FAILED(false,49999,"登录失败"),
     LOGIN_SUCCESS(true,20001,"登陆成功"),
-    GET_RESOURCE_FAILED(false,40001,"获取资源失败");
+    GET_RESOURCE_FAILED(false,40001,"获取资源失败"),
+    ACCOUNT_NOT_LOGIN(false,40002,"账号未登录"),
+    PERMISSION_DENIED(false,40003,"无权操作");
 
     ResponseState(boolean success,int code,String message){
         this.code=code;

@@ -20,6 +20,12 @@ public class ResponseResult {
     public static ResponseResult SUCCESS(){
         return new ResponseResult(ResponseState.SUCCESS);
     }
+    public static ResponseResult ACCOUNT_NOT_LOGIN(){
+        return new ResponseResult(ResponseState.ACCOUNT_NOT_LOGIN);
+    }
+    public static ResponseResult PERMISSION_DENIED(){
+        return new ResponseResult(ResponseState.PERMISSION_DENIED);
+    }
     public static ResponseResult SUCCESS(String message){
         ResponseResult responseResult=new ResponseResult(ResponseState.SUCCESS);
         responseResult.setMessage(message);

@@ -453,6 +453,40 @@ public class UserServiceImpl implements IUserService {
         return user == null ? ResponseResult.FAILED("该用户名未注册") : ResponseResult.SUCCESS("该用户名已经注册");
     }
 
+    @Override
+    public ResponseResult updateUserInfo(String userId, SobUser sobUser, HttpServletResponse response, HttpServletRequest request) {
+        //检查是否已经登录
+        SobUser userFromTokenKey = checkSobUser(request, response);
+        if (userFromTokenKey == null) {
+            return ResponseResult.ACCOUNT_NOT_LOGIN();
+        }
+        SobUser userFromDb = userDao.findOneById(userFromTokenKey.getId());
+        //判断用户id是否一致
+        if (!userFromDb.getId().equals(userId)) {
+            return ResponseResult.FAILED("无权限修改");
+        }
+        //用户名
+        if (!TextUtils.isEmpty(sobUser.getUserName())) {
+            SobUser oneByUserName = userDao.findOneByUserName(sobUser.getUserName());
+            if (oneByUserName != null) {
+                return ResponseResult.FAILED("该用户名已注册");
+            }
+            userFromDb.setUserName(sobUser.getUserName());
+        }
+        //头像
+        if (!TextUtils.isEmpty(sobUser.getAvatar())) {
+            userFromDb.setAvatar(sobUser.getAvatar());
+        }
+        //签名，可空
+        userFromDb.setSign(sobUser.getSign());
+        userDao.save(userFromDb);
+        //更新redis里面的token（token里面的用户名是旧的）
+        String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
+        redisUtil.del(Constants.User.KEY_TOKEN+tokenKey);
+        return ResponseResult.SUCCESS("用户信息修改成功");
+
+    }
+
     private SobUser parseByTokenKey(String tokenKey) {
         String token = (String) redisUtil.get(Constants.User.KEY_TOKEN + tokenKey);
         if (token != null) {

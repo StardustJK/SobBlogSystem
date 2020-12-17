@@ -11,6 +11,7 @@ public class CookieUtils {
 
     /**
      * 设置cookie值
+     *
      * @param response
      * @param key
      * @param value
@@ -30,13 +31,17 @@ public class CookieUtils {
 
     /**
      * 获取cookie
+     *
      * @param request
      * @param key
      * @return
      */
-    public static String getCookie(HttpServletRequest request,String key){
-        Cookie[] cookies=request.getCookies();
-        for(Cookie cookie:cookies){
+    public static String getCookie(HttpServletRequest request, String key) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
             if (key.equals(cookie.getName())) {
                 return cookie.getValue();
             }
@@ -46,10 +51,11 @@ public class CookieUtils {
 
     /**
      * 删除cookie
+     *
      * @param response
      * @param key
      */
-    public static void deleteCookie(HttpServletResponse response,String key){
-        setUpCookie(response,key,null,0);
+    public static void deleteCookie(HttpServletResponse response, String key) {
+        setUpCookie(response, key, null, 0);
     }
 }

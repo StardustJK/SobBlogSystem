@@ -132,8 +132,12 @@ public class UserApi {
      * 可修改内容：头像，用户名（唯一），密码（单独修改），签名，email（唯一，单独修改）
      */
     @PutMapping("/{userId}")
-    public ResponseResult updateUserInfo(@PathVariable("userId") String userId, @RequestBody SobUser sobUser) {
-        return null;
+    public ResponseResult updateUserInfo(@PathVariable("userId") String userId,
+                                         @RequestBody SobUser sobUser,
+                                         HttpServletResponse response,
+                                         HttpServletRequest request
+    ) {
+        return userService.updateUserInfo(userId, sobUser,response,request);
     }
 
     /**
@@ -169,6 +173,7 @@ public class UserApi {
 
     /**
      * 检查该用户名是否已经注册
+     *
      * @param userName 用户名
      * @return
      */
