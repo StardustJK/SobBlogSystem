@@ -26,6 +26,9 @@ public class ResponseResult {
     public static ResponseResult PERMISSION_DENIED(){
         return new ResponseResult(ResponseState.PERMISSION_DENIED);
     }
+    public static ResponseResult ACCOUNT_DENIED(){
+        return new ResponseResult(ResponseState.ACCOUNT_DENIED);
+    }
     public static ResponseResult SUCCESS(String message){
         ResponseResult responseResult=new ResponseResult(ResponseState.SUCCESS);
         responseResult.setMessage(message);

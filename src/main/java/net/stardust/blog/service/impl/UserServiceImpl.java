@@ -345,7 +345,7 @@ public class UserServiceImpl implements IUserService {
         //密码正确
         //判断用户状态，如果是非正常的，则返回结果
         if (!"1".equals(userFromDb.getState())) {
-            return ResponseResult.FAILED("该账号已被禁止");
+            return ResponseResult.ACCOUNT_DENIED();
         }
         createToken(response, userFromDb);
         return ResponseResult.SUCCESS("登录成功");
@@ -484,6 +484,34 @@ public class UserServiceImpl implements IUserService {
         String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
         redisUtil.del(Constants.User.KEY_TOKEN+tokenKey);
         return ResponseResult.SUCCESS("用户信息修改成功");
+
+    }
+
+    /**
+     * 删除用户，不是真的删除，是修改了状态，需要管理员权限
+     * @param userId
+     * @param request
+     * @param response
+     * @return
+     */
+    @Override
+    public ResponseResult deleteUserById(String userId, HttpServletRequest request, HttpServletResponse response) {
+        //检验当前用户是谁
+        SobUser currentUser = checkSobUser(request, response);
+        if (currentUser == null) {
+            return ResponseResult.ACCOUNT_NOT_LOGIN();
+        }
+        //无权限
+        if (!Constants.User.ROLE_ADMIN.equals(currentUser.getRoles())) {
+            return ResponseResult.PERMISSION_DENIED();
+        }
+        int result = userDao.deleteUserByState(userId);
+        if (result>0){
+            return ResponseResult.SUCCESS("删除成功");
+        }
+        else{
+            return ResponseResult.FAILED("用户不存在");
+        }
 
     }
 

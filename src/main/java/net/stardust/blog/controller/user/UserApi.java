@@ -150,10 +150,16 @@ public class UserApi {
 
     /**
      * 删除用户
+     * 需要管理员权限
      */
     @DeleteMapping("/{userId}")
-    public ResponseResult deleteUser(@PathVariable("userId") String userId) {
-        return null;
+    public ResponseResult deleteUser(@PathVariable("userId") String userId,
+                                     HttpServletRequest request,
+                                     HttpServletResponse response) {
+        //判断当前操作用户，根据用户角色判断是否可以删除
+        //TODO 通过注解的方式控制权限
+        return userService.deleteUserById(userId,request,response);
+
     }
 
     /**

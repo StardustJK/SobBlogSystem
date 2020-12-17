@@ -8,7 +8,9 @@ public enum ResponseState {
     LOGIN_SUCCESS(true,20001,"登陆成功"),
     GET_RESOURCE_FAILED(false,40001,"获取资源失败"),
     ACCOUNT_NOT_LOGIN(false,40002,"账号未登录"),
-    PERMISSION_DENIED(false,40003,"无权操作");
+    PERMISSION_DENIED(false,40003,"无权操作"),
+    ACCOUNT_DENIED(false,40003,"账号被禁止"),
+    ;
 
     ResponseState(boolean success,int code,String message){
         this.code=code;
