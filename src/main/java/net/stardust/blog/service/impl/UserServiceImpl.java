@@ -366,7 +366,7 @@ public class UserServiceImpl implements IUserService {
         //从request动态获取
         CookieUtils.setUpCookie(response, Constants.User.COOKIE_TOKEN_KEY, tokenKey);
         //生成RefreshToken
-        String refreshTokenValue = JwtUtil.createRefreshToken(userFromDb.getId(), Constants.TimeValue.MONTH*1000);
+        String refreshTokenValue = JwtUtil.createRefreshToken(userFromDb.getId(), Constants.TimeValue.MONTH * 1000);
         //保存到数据库
         //refreshToken,tokenKey,用户ID，创建时间，更新时间
         RefreshToken refreshToken = new RefreshToken();
@@ -391,7 +391,7 @@ public class UserServiceImpl implements IUserService {
     public SobUser checkSobUser(HttpServletRequest request, HttpServletResponse response) {
         //拿到token_key
         String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
-        log.info("tokenKey==> "+tokenKey);
+        log.info("tokenKey==> " + tokenKey);
         SobUser sobUser = parseByTokenKey(tokenKey);
         if (sobUser == null) {
             //解析出错->过期了
@@ -426,12 +426,12 @@ public class UserServiceImpl implements IUserService {
     public ResponseResult getUserInfo(String userId) {
         //从数据库获取
         SobUser userFromDb = userDao.findOneById(userId);
-        if(userFromDb==null){
+        if (userFromDb == null) {
             return ResponseResult.FAILED("用户不存在");
         }
         //克隆，清除敏感信息(一定要克隆！不然就修改数据库里面的内容)
         String userJson = gson.toJson(userFromDb);
-        SobUser newUser= gson.fromJson(userJson,SobUser.class);
+        SobUser newUser = gson.fromJson(userJson, SobUser.class);
         newUser.setPassword("");
         newUser.setEmail("");
         newUser.setRegIp("");
@@ -439,11 +439,22 @@ public class UserServiceImpl implements IUserService {
         return ResponseResult.SUCCESS("获取成功").setData(newUser);
 
 
+    }
 
+    @Override
+    public ResponseResult checkEmail(String email) {
+        SobUser user = userDao.findOneByEmail(email);
+        return user == null ? ResponseResult.FAILED("该邮箱未注册") : ResponseResult.SUCCESS("该邮箱已经注册");
+    }
+
+    @Override
+    public ResponseResult checkUserName(String userName) {
+        SobUser user = userDao.findOneByUserName(userName);
+        return user == null ? ResponseResult.FAILED("该用户名未注册") : ResponseResult.SUCCESS("该用户名已经注册");
     }
 
     private SobUser parseByTokenKey(String tokenKey) {
-        String token = (String) redisUtil.get(Constants.User.KEY_TOKEN+tokenKey);
+        String token = (String) redisUtil.get(Constants.User.KEY_TOKEN + tokenKey);
         if (token != null) {
             try {
                 Claims claims = JwtUtil.parseJWT(token);

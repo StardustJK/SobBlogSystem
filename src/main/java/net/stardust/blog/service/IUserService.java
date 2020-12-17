@@ -20,4 +20,7 @@ public interface IUserService {
 
     ResponseResult getUserInfo(String userId);
 
+    ResponseResult checkEmail(String email);
+
+    ResponseResult checkUserName(String userName);
 }
