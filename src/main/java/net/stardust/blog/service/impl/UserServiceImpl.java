@@ -501,15 +501,6 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public ResponseResult deleteUserById(String userId, HttpServletRequest request, HttpServletResponse response) {
-        //检验当前用户是谁
-        SobUser currentUser = checkSobUser(request, response);
-        if (currentUser == null) {
-            return ResponseResult.ACCOUNT_NOT_LOGIN();
-        }
-        //无权限
-        if (!Constants.User.ROLE_ADMIN.equals(currentUser.getRoles())) {
-            return ResponseResult.PERMISSION_DENIED();
-        }
         int result = userDao.deleteUserByState(userId);
         if (result > 0) {
             return ResponseResult.SUCCESS("删除成功");
@@ -521,15 +512,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public ResponseResult listUsers(int page, int size, HttpServletRequest request, HttpServletResponse response) {
-        //检验当前用户是谁
-        SobUser currentUser = checkSobUser(request, response);
-        if (currentUser == null) {
-            return ResponseResult.ACCOUNT_NOT_LOGIN();
-        }
-        //无权限
-        if (!Constants.User.ROLE_ADMIN.equals(currentUser.getRoles())) {
-            return ResponseResult.PERMISSION_DENIED();
-        }
+
         //分页查询
         if (page<Constants.Page.DEFAULT_PAGE){
             page=1;

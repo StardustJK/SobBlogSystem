@@ -8,6 +8,7 @@ import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.response.ResponseState;
 import net.stardust.blog.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -144,6 +145,7 @@ public class UserApi {
      * 获取用户列表
      * 权限:管理员
      */
+    @PreAuthorize("@permission.admin()")
     @GetMapping("/list")
     public ResponseResult listUsers(@RequestParam("page") int page,
                                     @RequestParam("size") int size,
@@ -156,6 +158,7 @@ public class UserApi {
      * 删除用户
      * 需要管理员权限
      */
+    @PreAuthorize("@permission.admin()")
     @DeleteMapping("/{userId}")
     public ResponseResult deleteUser(@PathVariable("userId") String userId,
                                      HttpServletRequest request,
