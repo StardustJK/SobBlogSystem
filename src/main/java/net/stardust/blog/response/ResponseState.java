@@ -3,6 +3,12 @@ package net.stardust.blog.response;
 public enum ResponseState {
     SUCCESS(true,20000,"操作成功"),
     FAILED(false,40000,"操作失败"),
+    ERROR_404(false,40004,"页面丢失"),
+    ERROR_403(false,40003,"权限不足"),
+    ERROR_504(false,50004,"系统繁忙，请稍后重试"),
+    ERROR_505(false,50005,"请求错误，请检查数据"),
+
+
     JOIN_IN_SUCCESS(true,20001,"注册成功"),
     LOGIN_FAILED(false,49999,"登录失败"),
     LOGIN_SUCCESS(true,20001,"登陆成功"),

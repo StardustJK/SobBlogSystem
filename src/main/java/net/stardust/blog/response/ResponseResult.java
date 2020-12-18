@@ -76,4 +76,18 @@ public class ResponseResult {
         this.data = data;
         return this;
     }
+    public static ResponseResult ERROR_404(){
+        return new ResponseResult(ResponseState.ERROR_404);
+    }
+    public static ResponseResult ERROR_403(){
+        return new ResponseResult(ResponseState.ERROR_403);
+    }
+    public static ResponseResult ERROR_504(){
+        return new ResponseResult(ResponseState.ERROR_504);
+    }
+    public static ResponseResult ERROR_505(){
+        return new ResponseResult(ResponseState.ERROR_505);
+    }
+
+
 }
