@@ -142,10 +142,14 @@ public class UserApi {
 
     /**
      * 获取用户列表
+     * 权限:管理员
      */
     @GetMapping("/list")
-    public ResponseResult listUsers(@RequestParam("page") int page, @RequestParam("size") int size) {
-        return null;
+    public ResponseResult listUsers(@RequestParam("page") int page,
+                                    @RequestParam("size") int size,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response) {
+        return userService.listUsers(page,size,request,response);
     }
 
     /**

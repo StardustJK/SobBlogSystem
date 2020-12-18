@@ -9,6 +9,24 @@ import java.util.Date;
 @Entity
 @Table(name = "tb_user")
 public class SobUser {
+    public SobUser(){
+
+    }
+
+    public SobUser(String id, String userName, String roles, String avatar, String email, String sign, String state, String regIp, String loginIp, Date createTime, Date updateTime) {
+        this.id = id;
+        this.userName = userName;
+        this.roles = roles;
+        this.avatar = avatar;
+        this.email = email;
+        this.sign = sign;
+        this.state = state;
+        this.regIp = regIp;
+        this.loginIp = loginIp;
+        this.createTime = createTime;
+        this.updateTime = updateTime;
+        this.password="";
+    }
 
     @Id
     @Column(name = "id")

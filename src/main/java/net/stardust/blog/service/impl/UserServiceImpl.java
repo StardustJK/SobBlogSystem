@@ -16,6 +16,10 @@ import net.stardust.blog.response.ResponseState;
 import net.stardust.blog.service.IUserService;
 import net.stardust.blog.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -482,13 +486,14 @@ public class UserServiceImpl implements IUserService {
         userDao.save(userFromDb);
         //更新redis里面的token（token里面的用户名是旧的）
         String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
-        redisUtil.del(Constants.User.KEY_TOKEN+tokenKey);
+        redisUtil.del(Constants.User.KEY_TOKEN + tokenKey);
         return ResponseResult.SUCCESS("用户信息修改成功");
 
     }
 
     /**
      * 删除用户，不是真的删除，是修改了状态，需要管理员权限
+     *
      * @param userId
      * @param request
      * @param response
@@ -506,12 +511,38 @@ public class UserServiceImpl implements IUserService {
             return ResponseResult.PERMISSION_DENIED();
         }
         int result = userDao.deleteUserByState(userId);
-        if (result>0){
+        if (result > 0) {
             return ResponseResult.SUCCESS("删除成功");
-        }
-        else{
+        } else {
             return ResponseResult.FAILED("用户不存在");
         }
+
+    }
+
+    @Override
+    public ResponseResult listUsers(int page, int size, HttpServletRequest request, HttpServletResponse response) {
+        //检验当前用户是谁
+        SobUser currentUser = checkSobUser(request, response);
+        if (currentUser == null) {
+            return ResponseResult.ACCOUNT_NOT_LOGIN();
+        }
+        //无权限
+        if (!Constants.User.ROLE_ADMIN.equals(currentUser.getRoles())) {
+            return ResponseResult.PERMISSION_DENIED();
+        }
+        //分页查询
+        if (page<Constants.Page.DEFAULT_PAGE){
+            page=1;
+        }
+        //限制size,每页不少于10
+        if(size<Constants.Page.MIN_SIZE){
+            size=Constants.Page.MIN_SIZE;
+        }
+        //根据注册日期降序
+        Sort sort=new Sort(Sort.Direction.DESC,"createTime");
+        Pageable pageable= PageRequest.of(page-1,size,sort);
+        Page<SobUser> all = userDao.listAllUserNoPassword(pageable);
+        return ResponseResult.SUCCESS("成功获取用户列表").setData(all);
 
     }
 
