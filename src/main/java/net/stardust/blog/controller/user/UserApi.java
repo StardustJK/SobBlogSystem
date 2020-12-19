@@ -43,7 +43,7 @@ public class UserApi {
      * @return
      */
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseResult register(@RequestBody SobUser sobUser,
                                    @RequestParam("email_code") String emailCode,
                                    @RequestParam("captcha_code") String captchaCode,
@@ -69,7 +69,7 @@ public class UserApi {
      * @param response
      * @return
      */
-    @PostMapping("/{captcha}/{captcha_key}")
+    @PostMapping("/login/{captcha}/{captcha_key}")
     public ResponseResult logIn(@PathVariable("captcha_key") String captchaKey,
                                 @PathVariable String captcha,
                                 @RequestBody SobUser sobUser,
@@ -134,7 +134,7 @@ public class UserApi {
     /**
      * 获取用户信息
      */
-    @GetMapping("/{userId}")
+    @GetMapping("/user_info/{userId}")
     public ResponseResult getUserInfo(@PathVariable("userId") String userId) {
         return userService.getUserInfo(userId);
     }
@@ -143,7 +143,7 @@ public class UserApi {
      * 修改用户信息
      * 可修改内容：头像，用户名（唯一），密码（单独修改），签名，email（唯一，单独修改）
      */
-    @PutMapping("/{userId}")
+    @PutMapping("/user_info/{userId}")
     public ResponseResult updateUserInfo(@PathVariable("userId") String userId,
                                          @RequestBody SobUser sobUser) {
         return userService.updateUserInfo(userId, sobUser);

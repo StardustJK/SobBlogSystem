@@ -64,7 +64,7 @@ public class TestController {
             page = 1;
         }
         if (size < 1) {
-            size = Constants.DEFAULT_SIZE;
+            size = Constants.Page.MIN_SIZE;
         }
         Sort sort = new Sort(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(page - 1, size, sort);
