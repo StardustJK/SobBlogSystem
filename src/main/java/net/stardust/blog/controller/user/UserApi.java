@@ -114,10 +114,23 @@ public class UserApi {
 
     /**
      * 修改密码
+     * 修改密码和找回密码
+     * 普通做法：通过旧密码对比来更新密码
+     * 找回/修改密码：发送验证码到邮箱/手机，判断验证码是否正确。
+     *  1.用户填写邮箱
+     *  2.用户获取验证码 type=forget
+     *  3.填写验证码
+     *  4.填写新密码
+     *  5.提交数据
+     *
+     *  数据包括
+     *  1.邮箱和新密码
+     *  2.验证码
+     *
      */
-    @PutMapping("/password/{userId}")
-    public ResponseResult updatePassword(@RequestBody SobUser sobUser, @PathVariable("userId") String userId) {
-        return null;
+    @PutMapping("/password/{verifyCode}")
+    public ResponseResult updatePassword(@RequestBody SobUser sobUser,@PathVariable("verifyCode") String verifyCode) {
+        return userService.updatePassword(sobUser,verifyCode);
     }
 
     /**
