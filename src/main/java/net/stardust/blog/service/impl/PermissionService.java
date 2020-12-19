@@ -25,13 +25,12 @@ public class PermissionService {
     public boolean admin(){
         ServletRequestAttributes requestAttributes= (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request=requestAttributes.getRequest();
-        HttpServletResponse response = requestAttributes.getResponse();
         String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
         //没有登录，不用往下了
         if (TextUtils.isEmpty(tokenKey)) {
             return false;
         }
-        SobUser sobUser=userService.checkSobUser(request,response);
+        SobUser sobUser=userService.checkSobUser();
         if (sobUser == null) {
             return false;
         }

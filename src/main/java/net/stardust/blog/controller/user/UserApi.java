@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
-import net.stardust.blog.response.ResponseState;
 import net.stardust.blog.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,7 +26,7 @@ public class UserApi {
     /**
      * 初始化管理员账号init-admin
      *
-     * @return
+     * /@return
      */
     @PostMapping("/admin_account")
     public ResponseResult initManagerAccount(@RequestBody SobUser sobUser, HttpServletRequest request) {
@@ -117,20 +116,19 @@ public class UserApi {
      * 修改密码和找回密码
      * 普通做法：通过旧密码对比来更新密码
      * 找回/修改密码：发送验证码到邮箱/手机，判断验证码是否正确。
-     *  1.用户填写邮箱
-     *  2.用户获取验证码 type=forget
-     *  3.填写验证码
-     *  4.填写新密码
-     *  5.提交数据
-     *
-     *  数据包括
-     *  1.邮箱和新密码
-     *  2.验证码
-     *
+     * 1.用户填写邮箱
+     * 2.用户获取验证码 type=forget
+     * 3.填写验证码
+     * 4.填写新密码
+     * 5.提交数据
+     * <p>
+     * 数据包括
+     * 1.邮箱和新密码
+     * 2.验证码
      */
     @PutMapping("/password/{verifyCode}")
-    public ResponseResult updatePassword(@RequestBody SobUser sobUser,@PathVariable("verifyCode") String verifyCode) {
-        return userService.updatePassword(sobUser,verifyCode);
+    public ResponseResult updatePassword(@RequestBody SobUser sobUser, @PathVariable("verifyCode") String verifyCode) {
+        return userService.updatePassword(sobUser, verifyCode);
     }
 
     /**
@@ -147,11 +145,8 @@ public class UserApi {
      */
     @PutMapping("/{userId}")
     public ResponseResult updateUserInfo(@PathVariable("userId") String userId,
-                                         @RequestBody SobUser sobUser,
-                                         HttpServletResponse response,
-                                         HttpServletRequest request
-    ) {
-        return userService.updateUserInfo(userId, sobUser,response,request);
+                                         @RequestBody SobUser sobUser) {
+        return userService.updateUserInfo(userId, sobUser);
     }
 
     /**
@@ -161,10 +156,9 @@ public class UserApi {
     @PreAuthorize("@permission.admin()")
     @GetMapping("/list")
     public ResponseResult listUsers(@RequestParam("page") int page,
-                                    @RequestParam("size") int size,
-                                    HttpServletRequest request,
-                                    HttpServletResponse response) {
-        return userService.listUsers(page,size,request,response);
+                                    @RequestParam("size") int size
+                                    ) {
+        return userService.listUsers(page, size);
     }
 
     /**
@@ -173,12 +167,9 @@ public class UserApi {
      */
     @PreAuthorize("@permission.admin()")
     @DeleteMapping("/{userId}")
-    public ResponseResult deleteUser(@PathVariable("userId") String userId,
-                                     HttpServletRequest request,
-                                     HttpServletResponse response) {
+    public ResponseResult deleteUser(@PathVariable("userId") String userId) {
         //判断当前操作用户，根据用户角色判断是否可以删除
-        //TODO 通过注解的方式控制权限
-        return userService.deleteUserById(userId,request,response);
+        return userService.deleteUserById(userId);
 
     }
 
@@ -210,5 +201,29 @@ public class UserApi {
     @GetMapping("/user_name")
     public ResponseResult checkUserName(@RequestParam("userName") String userName) {
         return userService.checkUserName(userName);
+    }
+
+    /**
+     * 1.必须登录
+     * 2.新的邮箱没有注册过
+     * <p>
+     * 用户步骤
+     * 1.已经登录
+     * 2.输入新的邮箱
+     * 3.获取验证码type=update
+     * 4.输入验证码
+     * 5.提交数据
+     * <p>
+     * 数据：
+     * 1.新的邮箱地址
+     * 2.验证码
+     * 3.其他信息从token获取
+     *
+     * @return
+     */
+    @PutMapping("/email")
+    public ResponseResult updateEmail(@RequestParam("email") String email,
+                                      @RequestParam("verify_code") String verifyCode) {
+        return userService.updateEmail(email, verifyCode);
     }
 }

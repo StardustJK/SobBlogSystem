@@ -16,7 +16,7 @@ public interface IUserService {
     ResponseResult register(SobUser sobUser, String emailCode, String captchaCode, String captchaKey, HttpServletRequest request);
 
     ResponseResult logIn(String captcha, String captchaKey, SobUser sobUser, HttpServletRequest request, HttpServletResponse response);
-    SobUser checkSobUser(HttpServletRequest request,HttpServletResponse response);
+    SobUser checkSobUser();
 
     ResponseResult getUserInfo(String userId);
 
@@ -24,11 +24,14 @@ public interface IUserService {
 
     ResponseResult checkUserName(String userName);
 
-    ResponseResult updateUserInfo(String userId, SobUser sobUser, HttpServletResponse response, HttpServletRequest request);
+    ResponseResult updateUserInfo(String userId, SobUser sobUser);
 
-    ResponseResult deleteUserById(String userId, HttpServletRequest request, HttpServletResponse response);
+    ResponseResult deleteUserById(String userId);
 
-    ResponseResult listUsers(int page, int size, HttpServletRequest request, HttpServletResponse response);
+    ResponseResult listUsers(int page, int size);
 
     ResponseResult updatePassword(SobUser sobUser, String verifyCode);
+
+    ResponseResult updateEmail(String email, String verifyCode);
+
 }

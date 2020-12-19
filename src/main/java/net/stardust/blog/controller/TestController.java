@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -126,9 +128,11 @@ public class TestController {
     @Autowired
     private UserServiceImpl userService;
     @PostMapping("/comment")
-    public ResponseResult testComment(@RequestBody Comment comment, HttpServletRequest request,HttpServletResponse response) {
+    public ResponseResult testComment(@RequestBody Comment comment) {
         String content = comment.getContent();
         log.info("comment content == >" + content);
+        ServletRequestAttributes requestAttributes= (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request=requestAttributes.getRequest();
         String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
         if (tokenKey == null) {
             return ResponseResult.FAILED("账号未登录");
@@ -139,7 +143,7 @@ public class TestController {
             //如果refreshToken也不存在，告诉用户未登录
 
         }
-        SobUser sobUser = userService.checkSobUser(request, response);
+        SobUser sobUser = userService.checkSobUser();
         if (sobUser == null) {
             return ResponseResult.FAILED("账号未登录");
         }
