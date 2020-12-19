@@ -34,4 +34,6 @@ public interface IUserService {
 
     ResponseResult updateEmail(String email, String verifyCode);
 
+    ResponseResult logout();
+
 }

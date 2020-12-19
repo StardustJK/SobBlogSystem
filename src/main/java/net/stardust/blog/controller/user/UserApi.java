@@ -226,4 +226,17 @@ public class UserApi {
                                       @RequestParam("verify_code") String verifyCode) {
         return userService.updateEmail(email, verifyCode);
     }
+
+    /**
+     * 退出登录
+     * 1.拿到tokenKey
+     * 2.删除redis对应的token
+     * 3.删除mysql中的refreshToken
+     * 4.删除cookie里的tokenKey
+     * @return
+     */
+    @GetMapping("/logout")
+    public ResponseResult logout(){
+        return userService.logout();
+    }
 }

@@ -393,12 +393,9 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public SobUser checkSobUser() {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = requestAttributes.getRequest();
-        HttpServletResponse response = requestAttributes.getResponse();
 
         //拿到token_key
-        String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
+        String tokenKey = CookieUtils.getCookie(getRequest(), Constants.User.COOKIE_TOKEN_KEY);
         log.info("tokenKey==> " + tokenKey);
         SobUser sobUser = parseByTokenKey(tokenKey);
         if (sobUser == null) {
@@ -416,7 +413,7 @@ public class UserServiceImpl implements IUserService {
                 //有效，创建新的token和refreshToken
                 String userId = refreshToken.getUserId();
                 SobUser userFromDb = userDao.findOneById(userId);
-                String newTokenKey = createToken(response, userFromDb);
+                String newTokenKey = createToken(getResponse(), userFromDb);
                 log.info("创建了新的refreshToken和Token");
                 return parseByTokenKey(newTokenKey);
             } catch (Exception e1) {
@@ -489,9 +486,7 @@ public class UserServiceImpl implements IUserService {
         userFromDb.setSign(sobUser.getSign());
         userDao.save(userFromDb);
         //更新redis里面的token（token里面的用户名是旧的）
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = requestAttributes.getRequest();
-        String tokenKey = CookieUtils.getCookie(request, Constants.User.COOKIE_TOKEN_KEY);
+        String tokenKey = CookieUtils.getCookie(getRequest(), Constants.User.COOKIE_TOKEN_KEY);
         redisUtil.del(Constants.User.KEY_TOKEN + tokenKey);
         return ResponseResult.SUCCESS("用户信息修改成功");
 
@@ -570,6 +565,29 @@ public class UserServiceImpl implements IUserService {
         int result = userDao.updateEmailById(email, sobUser.getId());
 
         return result > 0 ? ResponseResult.SUCCESS("邮箱修改成功") : ResponseResult.FAILED("邮箱修改失败");
+    }
+    private HttpServletRequest getRequest(){
+        ServletRequestAttributes requestAttributes= (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return requestAttributes.getRequest();
+    }
+    private HttpServletResponse getResponse(){
+        ServletRequestAttributes requestAttributes= (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return requestAttributes.getResponse();
+    }
+    @Override
+    public ResponseResult logout() {
+        //拿tokenKey
+        String tokenKey = CookieUtils.getCookie(getRequest(), Constants.User.COOKIE_TOKEN_KEY);
+        if (TextUtils.isEmpty(tokenKey)) {
+            return ResponseResult.ACCOUNT_NOT_LOGIN();
+        }
+        //删除redis里的token
+        redisUtil.del(Constants.User.KEY_TOKEN+tokenKey);
+        //删除mysql的refreshToken
+        refreshTokenDao.deleteAllByTokenKey(tokenKey);
+        //删除cookie里面的tokenKey
+        CookieUtils.deleteCookie(getResponse(),Constants.User.COOKIE_TOKEN_KEY);
+        return ResponseResult.SUCCESS("成功退出登录");
     }
 
     private SobUser parseByTokenKey(String tokenKey) {
