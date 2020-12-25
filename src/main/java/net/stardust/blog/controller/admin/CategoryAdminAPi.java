@@ -47,10 +47,13 @@ public class CategoryAdminAPi {
     }
     /**
      * 查询分类
+     * 修改的时候
+     * 填充弹窗
      */
+    @PreAuthorize("@permission.admin()")
     @GetMapping("/{categoryId}")
     public ResponseResult getCategory( @PathVariable("categoryId") String categoryId){
-        return null;
+        return categoryService.getCategory(categoryId);
     }
 
     /**
@@ -59,9 +62,10 @@ public class CategoryAdminAPi {
      * @param size
      * @return
      */
-    @GetMapping("/list")
-    public ResponseResult listCategory(@RequestParam("page") int page,@RequestParam("size") int size){
-        return null;
+    @PreAuthorize("@permission.admin()")
+    @GetMapping("/list/{page}/{size}")
+    public ResponseResult listCategory(@PathVariable("page") int page,@PathVariable("size") int size){
+        return categoryService.listCategory(page,size);
     }
 
 
