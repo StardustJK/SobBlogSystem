@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/comment")
-public class CommentApi {
+public class CommentAdminApi {
 
     @PutMapping("/{commentId}")
     public ResponseResult deleteComment(@PathVariable("commentId") String commentId){

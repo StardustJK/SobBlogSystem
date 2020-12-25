@@ -2,20 +2,28 @@ package net.stardust.blog.controller.admin;
 
 import net.stardust.blog.pojo.Category;
 import net.stardust.blog.response.ResponseResult;
+import net.stardust.blog.service.ICategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/category")
 public class CategoryAdminAPi {
 
+    @Autowired
+    private ICategoryService categoryService;
+
     /**
      * 添加分类
+     *
      * @param category
      * @return
      */
+    @PreAuthorize("@permission.admin()")
     @PostMapping
     public ResponseResult addCategory(@RequestBody Category category){
-        return null;
+        return categoryService.addCategory(category);
     }
 
     /**
