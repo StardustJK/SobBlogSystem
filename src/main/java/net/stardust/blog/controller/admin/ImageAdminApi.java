@@ -8,6 +8,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/admin/image")
 public class ImageAdminApi {
@@ -26,15 +29,15 @@ public class ImageAdminApi {
     public ResponseResult deleteImage(@PathVariable("imageId") String imageId){
         return null;
     }
-    @PreAuthorize("@permission.admin()")
-    @PutMapping("/{imageId}")
-    public ResponseResult updateImage(@PathVariable("imageId") String imageId){
-        return null;
-    }
+
     @PreAuthorize("@permission.admin()")
     @GetMapping("/{imageId}")
-    public ResponseResult getImage(@PathVariable("imageId") String imageId){
-        return null;
+    public void getImage(HttpServletResponse response, @PathVariable("imageId") String imageId){
+        try {
+            imageService.viewImage(response,imageId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     @PreAuthorize("@permission.admin()")
     @GetMapping("/list")
