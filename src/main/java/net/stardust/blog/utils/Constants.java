@@ -50,4 +50,14 @@ public interface Constants {
 
         long HOUR_2 = 2 * HOUR;
     }
+
+    interface ImageType{
+        String PREFIX="image/";
+        String TYPE_JPG="jpg";
+        String TYPE_PNG="png";
+        String TYPE_GIF="gif";
+        String TYPE_JPG_WITH_PREFIX=PREFIX+"jpg";
+        String TYPE_PNG_WITH_PREFIX=PREFIX+"png";
+        String TYPE_GIF_WITH_PREFIX =PREFIX+"gif";
+    }
 }

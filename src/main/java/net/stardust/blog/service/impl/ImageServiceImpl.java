@@ -3,7 +3,10 @@ package net.stardust.blog.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IImageService;
+import net.stardust.blog.utils.Constants;
+import net.stardust.blog.utils.SnowFlakeIdWorker;
 import net.stardust.blog.utils.TextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,14 +14,24 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Slf4j
 @Service
 @Transactional
 public class ImageServiceImpl implements IImageService {
 
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd");
+
     @Value("${sob.blog.image.save-path}")
     public String imagePath;
+
+    @Value("${sob.blog.image.max-size}")
+    public long maxSize;
+
+    @Autowired
+    private SnowFlakeIdWorker idWorker;
 
     /**
      * 保存数据到数据库：ID/存储路径/Url/原名称/创建日期/更新日期/状态/用户id/
@@ -36,19 +49,49 @@ public class ImageServiceImpl implements IImageService {
         if (TextUtils.isEmpty(contentType)) {
             return ResponseResult.FAILED("文件格式错误");
         }
-
-        if (!"image/png".equals(contentType) &&
-                !"image/gif".equals(contentType) &&
-                !"image/jpg".equals(contentType)
-        ) {
-            return ResponseResult.FAILED("不支持此图片类型");
-        }
-        log.info("contentType==>" + contentType);
         String originalFilename = file.getOriginalFilename();
         log.info("originalFilename==>  " + originalFilename);
-        File targetFile = new File(imagePath + File.separator + originalFilename);
+
+        String type = null;
+        if (Constants.ImageType.TYPE_PNG_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_PNG)) {
+            type = Constants.ImageType.TYPE_PNG;
+        } else if (Constants.ImageType.TYPE_GIF_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_GIF)) {
+            type = Constants.ImageType.TYPE_GIF;
+        } else if (Constants.ImageType.TYPE_JPG_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_JPG)) {
+            type = Constants.ImageType.TYPE_JPG;
+        }
+        if (type == null) {
+            return ResponseResult.FAILED("不支持此图片类型");
+
+        }
+        log.info("contentType==>" + contentType);
+
+        //限制文件大小
+        long size = file.getSize();
+        log.info("maxSize = = > " + maxSize + "   size===>" + size);
+        if (size > maxSize) {
+            return ResponseResult.FAILED("图片最大仅支持" + (maxSize / 1024 / 1024) + "Mb");
+        }
+        //命名规则:配置目录/日期/类型/ID.类型
+        String currentDay = simpleDateFormat.format(new Date());
+        log.info("currentDay == > " + currentDay);
+        String parentPath=imagePath + File.separator + currentDay+ File.separator + type;
+        File parentPathFile=new File(parentPath);
+        //判断父文件夹是否存在
+        if(!parentPathFile.exists()){
+            parentPathFile.mkdirs();
+        }
+        String targetPath =  parentPath+ File.separator + idWorker.nextId() + "." + type;
+        File targetFile=new File(targetPath);
         log.info("targetFile == >" + targetFile);
+
         try {
+            if(!targetFile.exists()){
+                targetFile.createNewFile();
+            }
             file.transferTo(targetFile);
         } catch (IOException e) {
             e.printStackTrace();

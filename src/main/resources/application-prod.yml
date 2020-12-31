@@ -17,3 +17,5 @@ spring:
     host: 39.97.212.229
     password: 123456
 sob.blog.image.save-path: \home\stardust\sobBlog\images
+# 2M
+sob.blog.image.max-size: 2097152
