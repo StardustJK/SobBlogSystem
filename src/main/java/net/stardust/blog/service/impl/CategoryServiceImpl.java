@@ -1,5 +1,6 @@
 package net.stardust.blog.service.impl;
 
+import net.bytebuddy.asm.Advice;
 import net.stardust.blog.dao.CategoryDao;
 import net.stardust.blog.pojo.Category;
 import net.stardust.blog.response.ResponseResult;
@@ -101,5 +102,14 @@ public class CategoryServiceImpl implements ICategoryService {
         return ResponseResult.SUCCESS("更新分类成功");
 
 
+    }
+
+    @Override
+    public ResponseResult deleteCategory(String categoryId) {
+        int result = categoryDao.deleteCategoryByUpdateStatus(categoryId);
+        if(result==0){
+            return ResponseResult.FAILED("删除分类失败,该分类不存在");
+        }
+        return ResponseResult.SUCCESS("删除分类成功");
     }
 }
