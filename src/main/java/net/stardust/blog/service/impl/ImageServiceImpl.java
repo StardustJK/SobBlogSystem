@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IImageService;
 import net.stardust.blog.utils.TextUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,8 +17,15 @@ import java.io.*;
 @Transactional
 public class ImageServiceImpl implements IImageService {
 
-    public static final String imagePath="D:\\AProjects\\images";
+    @Value("${sob.blog.image.save-path}")
+    public String imagePath;
 
+    /**
+     * 保存数据到数据库：ID/存储路径/Url/原名称/创建日期/更新日期/状态/用户id/
+     *
+     * @param file
+     * @return
+     */
     @Override
     public ResponseResult uploadImage(MultipartFile file) {
         if (file == null) {
@@ -35,11 +43,11 @@ public class ImageServiceImpl implements IImageService {
         ) {
             return ResponseResult.FAILED("不支持此图片类型");
         }
-        log.info("contentType==>" +contentType);
+        log.info("contentType==>" + contentType);
         String originalFilename = file.getOriginalFilename();
-        log.info("originalFilename==>  "+originalFilename);
-        File targetFile=new File(imagePath+File.separator+originalFilename);
-        log.info("targetFile == >"+targetFile);
+        log.info("originalFilename==>  " + originalFilename);
+        File targetFile = new File(imagePath + File.separator + originalFilename);
+        log.info("targetFile == >" + targetFile);
         try {
             file.transferTo(targetFile);
         } catch (IOException e) {
@@ -51,27 +59,27 @@ public class ImageServiceImpl implements IImageService {
 
     @Override
     public void viewImage(HttpServletResponse response, String imageId) throws IOException {
-        File file=new File(imagePath+File.separator+"Snipaste_2020-12-31_13-25-11.png");
-        OutputStream writer=null;
-        FileInputStream fos=null;
+        File file = new File(imagePath + File.separator + "Snipaste_2020-12-31_13-25-11.png");
+        OutputStream writer = null;
+        FileInputStream fos = null;
         try {
             response.setContentType("image/png");
-            writer= response.getOutputStream();
+            writer = response.getOutputStream();
             //读取
-            fos=new FileInputStream(file);
-            byte[] buff=new byte[1024];
+            fos = new FileInputStream(file);
+            byte[] buff = new byte[1024];
             int len;
-            while ((len=fos.read(buff))!=-1){
-                writer.write(buff,0,len);
+            while ((len = fos.read(buff)) != -1) {
+                writer.write(buff, 0, len);
             }
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if (writer != null) {
                 writer.close();
             }
-            if (fos!=null){
+            if (fos != null) {
                 fos.close();
             }
         }
