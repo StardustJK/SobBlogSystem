@@ -16,6 +16,8 @@ import javax.transaction.Transactional;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -52,17 +54,7 @@ public class ImageServiceImpl implements IImageService {
         String originalFilename = file.getOriginalFilename();
         log.info("originalFilename==>  " + originalFilename);
 
-        String type = null;
-        if (Constants.ImageType.TYPE_PNG_WITH_PREFIX.equals(contentType)
-                && originalFilename.endsWith(Constants.ImageType.TYPE_PNG)) {
-            type = Constants.ImageType.TYPE_PNG;
-        } else if (Constants.ImageType.TYPE_GIF_WITH_PREFIX.equals(contentType)
-                && originalFilename.endsWith(Constants.ImageType.TYPE_GIF)) {
-            type = Constants.ImageType.TYPE_GIF;
-        } else if (Constants.ImageType.TYPE_JPG_WITH_PREFIX.equals(contentType)
-                && originalFilename.endsWith(Constants.ImageType.TYPE_JPG)) {
-            type = Constants.ImageType.TYPE_JPG;
-        }
+        String type = getType(contentType, originalFilename);
         if (type == null) {
             return ResponseResult.FAILED("不支持此图片类型");
 
@@ -76,33 +68,69 @@ public class ImageServiceImpl implements IImageService {
             return ResponseResult.FAILED("图片最大仅支持" + (maxSize / 1024 / 1024) + "Mb");
         }
         //命名规则:配置目录/日期/类型/ID.类型
-        String currentDay = simpleDateFormat.format(new Date());
+        long currentMillions = System.currentTimeMillis();
+        String currentDay = simpleDateFormat.format(currentMillions);
         log.info("currentDay == > " + currentDay);
-        String parentPath=imagePath + File.separator + currentDay+ File.separator + type;
-        File parentPathFile=new File(parentPath);
+        String parentPath = imagePath + File.separator + currentDay + File.separator + type;
+        File parentPathFile = new File(parentPath);
         //判断父文件夹是否存在
-        if(!parentPathFile.exists()){
+        if (!parentPathFile.exists()) {
             parentPathFile.mkdirs();
         }
-        String targetPath =  parentPath+ File.separator + idWorker.nextId() + "." + type;
-        File targetFile=new File(targetPath);
+        String targetName = idWorker.nextId() + "";
+        String targetPath = parentPath + File.separator + targetName + "." + type;
+        File targetFile = new File(targetPath);
         log.info("targetFile == >" + targetFile);
 
         try {
-            if(!targetFile.exists()){
+            if (!targetFile.exists()) {
                 targetFile.createNewFile();
             }
+            //保存文件
             file.transferTo(targetFile);
+            //返回结果：图片的名称和访问路径
+            Map<String,String> result=new HashMap<>();
+            String resultPath = currentMillions + "_" +targetName+"."+type;
+            result.put("id",resultPath);
+            result.put("name",originalFilename);
+
+            return ResponseResult.SUCCESS("图片上传成功").setData(result);
+
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseResult.FAILED("图片上传失败");
         }
-        return ResponseResult.SUCCESS("图片上传成功");
+        return ResponseResult.FAILED("图片上传失败");
+
+    }
+
+    private String getType(String contentType, String originalFilename) {
+        String type = null;
+        if (Constants.ImageType.TYPE_PNG_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_PNG)) {
+            type = Constants.ImageType.TYPE_PNG;
+        } else if (Constants.ImageType.TYPE_GIF_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_GIF)) {
+            type = Constants.ImageType.TYPE_GIF;
+        } else if (Constants.ImageType.TYPE_JPG_WITH_PREFIX.equals(contentType)
+                && originalFilename.endsWith(Constants.ImageType.TYPE_JPG)) {
+            type = Constants.ImageType.TYPE_JPG;
+        }
+        return type;
     }
 
     @Override
     public void viewImage(HttpServletResponse response, String imageId) throws IOException {
-        File file = new File(imagePath + File.separator + "Snipaste_2020-12-31_13-25-11.png");
+        //日期的时间戳_.ID.类型；
+        String[] paths = imageId.split("_");
+        String dayValue=paths[0];
+        String format=simpleDateFormat.format(Long.parseLong(dayValue));
+
+        String name=paths[1];
+        String type=name.substring(name.length()-3);
+
+        String targetPath=imagePath+File.separator+format+File.separator+type+File.separator+name;
+        log.info("get target path == > "+targetPath);
+        File file = new File(targetPath);
         OutputStream writer = null;
         FileInputStream fos = null;
         try {
