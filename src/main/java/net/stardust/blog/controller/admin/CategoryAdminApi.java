@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/category")
-public class CategoryAdminAPi {
+public class CategoryAdminApi {
 
     @Autowired
     private ICategoryService categoryService;
@@ -41,9 +41,10 @@ public class CategoryAdminAPi {
      * @param categoryId
      * @return
      */
+    @PreAuthorize("@permission.admin()")
     @PutMapping("/{categoryId}")
-    public ResponseResult updateCategory( @PathVariable("categoryId") String categoryId){
-        return null;
+    public ResponseResult updateCategory( @PathVariable("categoryId") String categoryId,@RequestBody Category category){
+        return categoryService.updateCategory(categoryId,category);
     }
     /**
      * 查询分类

@@ -22,15 +22,15 @@ public interface Constants {
         String MANAGER_ACCOUNT_INIT_STATE = "manager_account_init_state";
     }
 
-    interface Page{
-        int DEFAULT_PAGE=1;
-        int MIN_SIZE=10;
+    interface Page {
+        int DEFAULT_PAGE = 1;
+        int MIN_SIZE = 10;
     }
 
     /**
      * 单位为秒
      */
-    interface TimeValue {
+    interface TimeValueInSecond {
         int MIN = 60;
         int HOUR = 60 * MIN;
         int DAY = 24 * HOUR;
@@ -38,5 +38,16 @@ public interface Constants {
         int MONTH = DAY * 30;
 
         int HOUR_2 = 2 * HOUR;
+    }
+
+    //单位是ms
+    interface TimeValueInMillions {
+        long MIN = 60 * 1000;
+        long HOUR = 60 * MIN;
+        long DAY = 24 * HOUR;
+        long WEEK = 7 * DAY;
+        long MONTH = DAY * 30;
+
+        long HOUR_2 = 2 * HOUR;
     }
 }

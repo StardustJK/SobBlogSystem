@@ -75,4 +75,31 @@ public class CategoryServiceImpl implements ICategoryService {
         return ResponseResult.SUCCESS("成功获取分类列表").setData(all);
 
     }
+
+    @Override
+    public ResponseResult updateCategory(String categoryId,Category category) {
+
+        Category categoryFromDb = categoryDao.findOneById(categoryId);
+        if (categoryFromDb==null){
+            return ResponseResult.FAILED("分类不存在");
+        }
+        //判断内容进行修改
+        String name = category.getName();
+        if(!TextUtils.isEmpty(name)){
+            categoryFromDb.setName(name);
+        }
+        String pinyin = category.getPinyin();
+        if(!TextUtils.isEmpty(pinyin)){
+            categoryFromDb.setName(pinyin);
+        }
+        String description = category.getDescription();
+        if(!TextUtils.isEmpty(description)){
+            categoryFromDb.setDescription(description);
+        }
+        categoryFromDb.setOrder(category.getOrder());
+        categoryDao.save(categoryFromDb);
+        return ResponseResult.SUCCESS("更新分类成功");
+
+
+    }
 }

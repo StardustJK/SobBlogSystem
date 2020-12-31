@@ -11,4 +11,6 @@ public interface ICategoryService {
     ResponseResult getCategory(String categoryId);
 
     ResponseResult listCategory(int page, int size);
+
+    ResponseResult updateCategory(String categoryId,Category category);
 }

@@ -25,17 +25,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import sun.security.krb5.internal.crypto.CksumType;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -152,7 +149,7 @@ public class UserServiceImpl implements IUserService {
         String content = specCaptcha.text().toLowerCase();
         log.info("captcha content == > " + content);
         //验证码存入redis
-        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT + key, content, Constants.TimeValue.MIN * 10);
+        redisUtil.set(Constants.User.KEY_CAPTCHA_CONTENT + key, content, Constants.TimeValueInSecond.MIN * 10);
         // 输出图片流
         specCaptcha.out(response.getOutputStream());
 
@@ -366,13 +363,13 @@ public class UserServiceImpl implements IUserService {
         //如果前端访问的时候携带token的md5key,从redis获取即可
         String tokenKey = DigestUtils.md5DigestAsHex(token.getBytes());
         //保存token到redis,有效期2h
-        redisUtil.set(Constants.User.KEY_TOKEN + tokenKey, token, Constants.TimeValue.HOUR * 2);
+        redisUtil.set(Constants.User.KEY_TOKEN + tokenKey, token, Constants.TimeValueInSecond.HOUR * 2);
 
         //把tokenKey写到cookies
         //从request动态获取
         CookieUtils.setUpCookie(response, Constants.User.COOKIE_TOKEN_KEY, tokenKey);
         //生成RefreshToken
-        String refreshTokenValue = JwtUtil.createRefreshToken(userFromDb.getId(), Constants.TimeValue.MONTH * 1000);
+        String refreshTokenValue = JwtUtil.createRefreshToken(userFromDb.getId(), Constants.TimeValueInMillions.MONTH);
         //保存到数据库
         //refreshToken,tokenKey,用户ID，创建时间，更新时间
         RefreshToken refreshToken = new RefreshToken();
