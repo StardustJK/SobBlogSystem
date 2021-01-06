@@ -3,14 +3,24 @@ package net.stardust.blog.controller.admin;
 import net.stardust.blog.pojo.Article;
 import net.stardust.blog.pojo.Looper;
 import net.stardust.blog.response.ResponseResult;
+import net.stardust.blog.service.IArticleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import javax.xml.ws.Action;
 
 @RestController
 @RequestMapping("/admin/article")
 public class ArticleAdminApi {
+
+    @Autowired
+    private IArticleService articleService;
+
+    @PreAuthorize("@permission.admin()")
     @PostMapping
     public ResponseResult postArticle(@RequestBody Article article){
-        return null;
+        return articleService.postArticle(article);
     }
 
     @DeleteMapping("/{articleId}")

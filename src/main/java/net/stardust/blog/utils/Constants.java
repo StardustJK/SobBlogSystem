@@ -66,4 +66,9 @@ public interface Constants {
         String TYPE_PNG_WITH_PREFIX=PREFIX+"png";
         String TYPE_GIF_WITH_PREFIX =PREFIX+"gif";
     }
+
+    interface Article{
+        int TITLE_MAX_LENGTH=128;
+        int SUMMARY_MAX_LENGTH=256;
+    }
 }
