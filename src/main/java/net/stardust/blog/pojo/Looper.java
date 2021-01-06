@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Column;
+import java.util.Date;
 
 @Entity
 @Table ( name ="tb_looper" )
@@ -14,17 +15,17 @@ public class Looper {
   	@Column(name = "title" )
 	private String title;
   	@Column(name = "`order`" )
-	private long order;
+	private long order=1;
   	@Column(name = "state" )
-	private String state;
+	private String state="1";
   	@Column(name = "target_url" )
-	private String target_url;
+	private String targetUrl;
   	@Column(name = "image_url" )
-	private String image_url;
+	private String imageUrl;
   	@Column(name = "create_time" )
-	private java.sql.Timestamp create_time;
+	private Date createTime;
   	@Column(name = "update_time" )
-	private java.sql.Timestamp update_time;
+	private Date updateTime;
 
 
 	public String getId() {
@@ -53,7 +54,6 @@ public class Looper {
 		this.order = order;
 	}
 
-
 	public String getState() {
 		return state;
 	}
@@ -62,40 +62,35 @@ public class Looper {
 		this.state = state;
 	}
 
-
-	public String getTarget_url() {
-		return target_url;
+	public String getTargetUrl() {
+		return targetUrl;
 	}
 
-	public void setTarget_url(String target_url) {
-		this.target_url = target_url;
+	public void setTargetUrl(String targetUrl) {
+		this.targetUrl = targetUrl;
 	}
 
-
-	public String getImage_url() {
-		return image_url;
+	public String getImageUrl() {
+		return imageUrl;
 	}
 
-	public void setImage_url(String image_url) {
-		this.image_url = image_url;
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 
-
-	public java.sql.Timestamp getCreate_time() {
-		return create_time;
+	public Date getCreateTime() {
+		return createTime;
 	}
 
-	public void setCreate_time(java.sql.Timestamp create_time) {
-		this.create_time = create_time;
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
 	}
 
-
-	public java.sql.Timestamp getUpdate_time() {
-		return update_time;
+	public Date getUpdateTime() {
+		return updateTime;
 	}
 
-	public void setUpdate_time(java.sql.Timestamp update_time) {
-		this.update_time = update_time;
+	public void setUpdateTime(Date updateTime) {
+		this.updateTime = updateTime;
 	}
-
 }

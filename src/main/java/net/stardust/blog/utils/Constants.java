@@ -20,6 +20,10 @@ public interface Constants {
 
     interface Settings {
         String MANAGER_ACCOUNT_INIT_STATE = "manager_account_init_state";
+        String WEB_SITE_TITLE="web_site_title";
+        String WEB_SITE_DESCRIPTION="web_site_description";
+        String WEB_SITE_KEYWORDS="web_site_keywords";
+        String WEB_SITE_VIEW_COUNT="web_site_view_count";
     }
 
     interface Page {
@@ -39,6 +43,8 @@ public interface Constants {
 
         int HOUR_2 = 2 * HOUR;
     }
+
+
 
     //单位是ms
     interface TimeValueInMillions {

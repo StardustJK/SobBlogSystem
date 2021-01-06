@@ -6,7 +6,7 @@ import com.wf.captcha.base.Captcha;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.dao.RefreshTokenDao;
-import net.stardust.blog.dao.SettingsDao;
+import net.stardust.blog.dao.SettingDao;
 import net.stardust.blog.dao.UserDao;
 import net.stardust.blog.pojo.RefreshToken;
 import net.stardust.blog.pojo.Setting;
@@ -49,7 +49,7 @@ public class UserServiceImpl extends BaseService implements IUserService {
     private UserDao userDao;
 
     @Autowired
-    private SettingsDao settingsDao;
+    private SettingDao settingsDao;
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -481,6 +481,7 @@ public class UserServiceImpl extends BaseService implements IUserService {
         }
         //签名，可空
         userFromDb.setSign(sobUser.getSign());
+        userFromDb.setUpdateTime(new Date());
         userDao.save(userFromDb);
         //更新redis里面的token（token里面的用户名是旧的）
         String tokenKey = CookieUtils.getCookie(getRequest(), Constants.User.COOKIE_TOKEN_KEY);
