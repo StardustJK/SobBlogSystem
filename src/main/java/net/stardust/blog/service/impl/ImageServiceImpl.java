@@ -1,16 +1,30 @@
 package net.stardust.blog.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import net.stardust.blog.dao.ImageDao;
+import net.stardust.blog.pojo.Category;
+import net.stardust.blog.pojo.Image;
+import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IImageService;
+import net.stardust.blog.service.IUserService;
 import net.stardust.blog.utils.Constants;
 import net.stardust.blog.utils.SnowFlakeIdWorker;
 import net.stardust.blog.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.*;
@@ -22,7 +36,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @Transactional
-public class ImageServiceImpl implements IImageService {
+public class ImageServiceImpl extends BaseService implements IImageService {
 
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd");
 
@@ -35,6 +49,11 @@ public class ImageServiceImpl implements IImageService {
     @Autowired
     private SnowFlakeIdWorker idWorker;
 
+    @Autowired
+    private IUserService userService;
+
+    @Autowired
+    private ImageDao imageDao;
     /**
      * 保存数据到数据库：ID/存储路径/Url/原名称/创建日期/更新日期/状态/用户id/
      *
@@ -93,6 +112,21 @@ public class ImageServiceImpl implements IImageService {
             String resultPath = currentMillions + "_" +targetName+"."+type;
             result.put("id",resultPath);
             result.put("name",originalFilename);
+
+            Image image=new Image();
+            image.setContentType(contentType);
+            image.setId(targetName);
+            image.setCreateTime(new Date());
+            image.setUpdateTime(new Date());
+            image.setPath(targetFile.getPath());
+            image.setName(originalFilename);
+            image.setUrl(resultPath);
+            image.setState("1");
+            SobUser sobUser = userService.checkSobUser();
+            String userId = sobUser.getId();
+            image.setUserId(userId);
+            imageDao.save(image);
+
 
             return ResponseResult.SUCCESS("图片上传成功").setData(result);
 
@@ -155,4 +189,38 @@ public class ImageServiceImpl implements IImageService {
             }
         }
     }
+
+    @Override
+    public ResponseResult listImage(int page, int size) {
+        //分页查询
+        page=checkPage(page);
+        //限制size,每页不少于10
+        size=checkSize(size);
+        SobUser sobUser = userService.checkSobUser();
+        if (sobUser==null){
+            return ResponseResult.ACCOUNT_NOT_LOGIN();
+        }
+        //根据注册日期降序
+        Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Page<Image> all = imageDao.findAll(new Specification<Image>() {
+            @Override
+            public Predicate toPredicate(Root<Image> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                Predicate userIdPre=criteriaBuilder.equal(root.get("userId").as(String.class),sobUser.getId());
+                Predicate statePre = criteriaBuilder.equal(root.get("state").as(String.class), "1");
+                return criteriaBuilder.and(userIdPre,statePre);
+            }
+        },pageable);
+        return ResponseResult.SUCCESS("成功获取图片列表").setData(all);
+    }
+
+    @Override
+    public ResponseResult deleteImage(String imageId) {
+        int result = imageDao.deleteImageByUpdateState(imageId);
+        if(result==0){
+            return ResponseResult.FAILED("删除图片失败,该图片不存在");
+        }
+        return ResponseResult.SUCCESS("删除图片成功");
+    }
+
 }

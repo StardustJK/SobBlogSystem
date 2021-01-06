@@ -27,7 +27,7 @@ public class ImageAdminApi {
     @PreAuthorize("@permission.admin()")
     @DeleteMapping("/{imageId}")
     public ResponseResult deleteImage(@PathVariable("imageId") String imageId){
-        return null;
+        return imageService.deleteImage(imageId);
     }
 
     @PreAuthorize("@permission.admin()")
@@ -40,8 +40,8 @@ public class ImageAdminApi {
         }
     }
     @PreAuthorize("@permission.admin()")
-    @GetMapping("/list")
-    public ResponseResult listImage(@RequestParam("page") int page,@RequestParam("size") int size){
-        return null;
+    @GetMapping("/list/{page}/{size}")
+    public ResponseResult listImage(@PathVariable("page") int page,@PathVariable("size") int size){
+        return imageService.listImage(page,size);
     }
 }

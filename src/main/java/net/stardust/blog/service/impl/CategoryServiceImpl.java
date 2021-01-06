@@ -20,7 +20,7 @@ import java.util.Date;
 
 @Service
 @Transactional
-public class CategoryServiceImpl implements ICategoryService {
+public class CategoryServiceImpl extends BaseService implements ICategoryService {
 
     @Autowired
     private SnowFlakeIdWorker idWorker;
@@ -62,13 +62,9 @@ public class CategoryServiceImpl implements ICategoryService {
     @Override
     public ResponseResult listCategory(int page, int size) {
         //分页查询
-        if (page < Constants.Page.DEFAULT_PAGE) {
-            page = 1;
-        }
+        page=checkPage(page);
         //限制size,每页不少于10
-        if (size < Constants.Page.MIN_SIZE) {
-            size = Constants.Page.MIN_SIZE;
-        }
+        size=checkSize(size);
         //根据注册日期降序
         Sort sort = new Sort(Sort.Direction.DESC, "createTime","order");
         Pageable pageable = PageRequest.of(page - 1, size, sort);

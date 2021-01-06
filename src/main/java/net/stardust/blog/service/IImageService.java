@@ -10,4 +10,8 @@ public interface IImageService {
     ResponseResult uploadImage(MultipartFile file);
 
     void viewImage(HttpServletResponse response, String imageId) throws IOException;
+
+    ResponseResult listImage(int page, int size);
+
+    ResponseResult deleteImage(String imageId);
 }

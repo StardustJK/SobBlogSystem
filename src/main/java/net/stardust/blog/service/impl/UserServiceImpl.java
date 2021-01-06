@@ -40,7 +40,7 @@ import java.util.Random;
 @Service
 @Transactional
 @Slf4j
-public class UserServiceImpl implements IUserService {
+public class UserServiceImpl extends BaseService implements IUserService {
 
     @Autowired
     private SnowFlakeIdWorker idWorker;
@@ -510,13 +510,9 @@ public class UserServiceImpl implements IUserService {
     public ResponseResult listUsers(int page, int size) {
 
         //分页查询
-        if (page < Constants.Page.DEFAULT_PAGE) {
-            page = 1;
-        }
+        page=checkPage(page);
         //限制size,每页不少于10
-        if (size < Constants.Page.MIN_SIZE) {
-            size = Constants.Page.MIN_SIZE;
-        }
+        size=checkSize(size);
         //根据注册日期降序
         Sort sort = new Sort(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(page - 1, size, sort);

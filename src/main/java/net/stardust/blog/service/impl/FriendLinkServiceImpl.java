@@ -20,7 +20,7 @@ import java.util.Date;
 
 @Service
 @Transactional
-public class FriendLinkServiceImpl implements IFriendLinkService {
+public class FriendLinkServiceImpl extends BaseService implements IFriendLinkService {
 
     @Autowired
     private SnowFlakeIdWorker idWorker;
@@ -65,13 +65,9 @@ public class FriendLinkServiceImpl implements IFriendLinkService {
     @Override
     public ResponseResult listFriendLink(int page, int size) {
         //分页查询
-        if (page < Constants.Page.DEFAULT_PAGE) {
-            page = 1;
-        }
+        page=checkPage(page);
         //限制size,每页不少于10
-        if (size < Constants.Page.MIN_SIZE) {
-            size = Constants.Page.MIN_SIZE;
-        }
+        size=checkSize(size);
         //根据注册日期降序
         Sort sort = new Sort(Sort.Direction.DESC, "createTime", "order");
         Pageable pageable = PageRequest.of(page - 1, size, sort);
