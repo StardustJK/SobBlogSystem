@@ -1,7 +1,9 @@
 package net.stardust.blog.service.impl;
 
 import net.stardust.blog.dao.ArticleDao;
+import net.stardust.blog.dao.ArticleNoContentDao;
 import net.stardust.blog.pojo.Article;
+import net.stardust.blog.pojo.ArticleNoContent;
 import net.stardust.blog.pojo.SobUser;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.service.IArticleService;
@@ -37,6 +39,9 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
 
     @Autowired
     private ArticleDao articleDao;
+
+    @Autowired
+    private ArticleNoContentDao articleNoContentDao;
 
     @Override
     public ResponseResult postArticle(Article article) {
@@ -131,9 +136,9 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
 
         Sort sort=new Sort(Sort.Direction.DESC,"createTime");
         Pageable pageable= PageRequest.of(page-1,size,sort);
-        Page<Article> all=articleDao.findAll(new Specification<Article>() {
+        Page<ArticleNoContent> all=articleNoContentDao.findAll(new Specification<ArticleNoContent>() {
             @Override
-            public Predicate toPredicate(Root<Article> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+            public Predicate toPredicate(Root<ArticleNoContent> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates=new ArrayList<>();
                 //判断是否传了参数
                 if(!TextUtils.isEmpty(state)){
