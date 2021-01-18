@@ -10,10 +10,21 @@ import net.stardust.blog.utils.Constants;
 import net.stardust.blog.utils.SnowFlakeIdWorker;
 import net.stardust.blog.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional
@@ -102,5 +113,46 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
 
 
         return ResponseResult.SUCCESS(Constants.Article.STATE_DRAFT.equals(state) ? "草稿保存成功" : "文章发表成功").setData(article.getId());
+    }
+
+    /**
+     *
+     * @param page
+     * @param size
+     * @param keyword
+     * @param categoryId
+     * @param state 状态：已经删除、草稿、已经发布的、置顶的
+     * @return
+     */
+    @Override
+    public ResponseResult listArticles(int page, int size, String keyword, String categoryId, String state) {
+        page=checkPage(page);
+        size=checkSize(size);
+
+        Sort sort=new Sort(Sort.Direction.DESC,"createTime");
+        Pageable pageable= PageRequest.of(page-1,size,sort);
+        Page<Article> all=articleDao.findAll(new Specification<Article>() {
+            @Override
+            public Predicate toPredicate(Root<Article> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                List<Predicate> predicates=new ArrayList<>();
+                //判断是否传了参数
+                if(!TextUtils.isEmpty(state)){
+                    Predicate statePre=criteriaBuilder.equal(root.get("state").as(String.class),state);
+                    predicates.add(statePre);
+                }
+                if(!TextUtils.isEmpty(categoryId)){
+                    Predicate categoryIdPre=criteriaBuilder.equal(root.get("categoryId").as(String.class),categoryId);
+                    predicates.add(categoryIdPre);
+                }
+                if(!TextUtils.isEmpty(keyword)){
+                    Predicate keywordPre=criteriaBuilder.like(root.get("title").as(String.class),"%"+keyword+"%");
+                    predicates.add(keywordPre);
+                }
+                Predicate []preArray=new Predicate[predicates.size()];
+                predicates.toArray(preArray);
+                return criteriaBuilder.and(preArray);
+            }
+        },pageable);
+        return ResponseResult.SUCCESS("获取文章列表成功").setData(all);
     }
 }

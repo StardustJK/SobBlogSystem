@@ -36,9 +36,12 @@ public class ArticleAdminApi {
         return null;
     }
 
-    @GetMapping("/list")
-    public ResponseResult listArticles(@RequestParam("page") int page,@RequestParam("size") int size){
-        return null;
+    @GetMapping("/list/{page}/{size}")
+    public ResponseResult listArticles(@PathVariable("page") int page,@PathVariable("size") int size,
+                                       @RequestParam(value = "keyword",required = false)String keyword,
+                                       @RequestParam(value = "categoryId",required = false)String categoryId,
+                                       @RequestParam(value = "state",required = false)String state){
+        return articleService.listArticles(page,size,keyword,categoryId,state);
     }
 
     @PutMapping("/state/{articleId}/{state}")
