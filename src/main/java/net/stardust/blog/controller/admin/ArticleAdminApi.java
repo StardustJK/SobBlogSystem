@@ -57,13 +57,13 @@ public class ArticleAdminApi {
     }
 
     @PreAuthorize("@permission.admin()")
-    @PutMapping("/state/{articleId}/{state}")
-    public ResponseResult updateArticleStatus(@PathVariable("articleId") String articleId,@PathVariable("state") String state){
-        return null;
+    @DeleteMapping("/state/{articleId}")
+    public ResponseResult deleteArticleByUpdateState(@PathVariable("articleId") String articleId){
+        return articleService.deleteArticleByState(articleId);
     }
     @PreAuthorize("@permission.admin()")
-    @PutMapping("/state/{articleId}")
-    public ResponseResult updateArticleStatus(@PathVariable("articleId") String articleId){
-        return null;
+    @PutMapping("/top/{articleId}")
+    public ResponseResult topArticle(@PathVariable("articleId") String articleId){
+        return articleService.topArticle(articleId);
     }
 }

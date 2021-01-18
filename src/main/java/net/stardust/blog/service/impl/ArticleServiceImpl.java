@@ -240,4 +240,46 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
             return ResponseResult.FAILED("文章不存在");
         }
     }
+
+    /**
+     * 标记删除
+     * @param articleId
+     * @return
+     */
+    @Override
+    public ResponseResult deleteArticleByState(String articleId) {
+        int result = articleDao.deleteArticleByState(articleId);
+        if(result>0){
+            return ResponseResult.SUCCESS("删除成功");
+        }
+        else {
+            return ResponseResult.FAILED("文章不存在");
+        }
+    }
+
+    /**
+     * 只能置顶发布了的
+     * @param articleId
+     * @return
+     */
+    @Override
+    public ResponseResult topArticle(String articleId) {
+        Article articleFromDb = articleDao.findOneById(articleId);
+        if (articleFromDb == null) {
+            return ResponseResult.FAILED("文章不存在");
+        }
+        String state = articleFromDb.getState();
+        if (Constants.Article.STATE_PUBLISH.equals(state)) {
+            articleFromDb.setState(Constants.Article.STATE_TOP);
+            articleDao.save(articleFromDb);
+            return ResponseResult.SUCCESS("文章置顶成功");
+        }
+        else if(Constants.Article.STATE_TOP.equals(state)){
+            articleFromDb.setState(Constants.Article.STATE_PUBLISH);
+            articleDao.save(articleFromDb);
+            return ResponseResult.SUCCESS("文章取消置顶");
+        }
+
+        return ResponseResult.FAILED("不支持该操作");
+    }
 }
