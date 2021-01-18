@@ -24,6 +24,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import javax.xml.soap.Text;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -87,7 +88,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
             if (summary.length() > Constants.Article.SUMMARY_MAX_LENGTH) {
                 return ResponseResult.FAILED("摘要不可以超过" + Constants.Article.SUMMARY_MAX_LENGTH + "个字符");
             }
-            String labels = article.getLabels();
+            String labels = article.getLabel();
             if (TextUtils.isEmpty(labels)) {
                 return ResponseResult.FAILED("标签不能为空");
             }
@@ -159,5 +160,73 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
             }
         },pageable);
         return ResponseResult.SUCCESS("获取文章列表成功").setData(all);
+    }
+
+    /**
+     * 删除/草稿需要管理员角色
+     * @param articleId
+     * @return
+     */
+    @Override
+    public ResponseResult getArticleById(String articleId) {
+        Article oneById = articleDao.findOneById(articleId);
+        if (oneById == null) {
+            return ResponseResult.FAILED("文章不存在");
+        }
+        String state = oneById.getState();
+        if (Constants.Article.STATE_PUBLISH.equals(state)||
+                Constants.Article.STATE_TOP.equals(state)) {
+            return ResponseResult.SUCCESS("获取文章成功").setData(oneById);
+        }
+
+        //如果是草稿/删除，需要管理角色
+        SobUser sobUser = userService.checkSobUser();
+        String roles = sobUser.getRoles();
+        if (!Constants.User.ROLE_ADMIN.equals(roles)) {
+            return ResponseResult.PERMISSION_DENIED();
+        }
+        return ResponseResult.SUCCESS("获取文章成功").setData(oneById);
+
+    }
+
+    /**
+     * 只支持修改标题、内容、标签、分类、摘要、封面
+     * @param articleId
+     * @param article
+     * @return
+     */
+    @Override
+    public ResponseResult updateArticle(String articleId, Article article) {
+        Article articleFromDb = articleDao.findOneById(articleId);
+        if(articleFromDb==null){
+            return ResponseResult.FAILED("文章不存在");
+        }
+        String title = article.getTitle();
+        if(!TextUtils.isEmpty(title)){
+            articleFromDb.setTitle(title);
+        }
+        String content = article.getContent();
+        if(!TextUtils.isEmpty(content)){
+            articleFromDb.setContent(content);
+        }
+        String label = article.getLabel();
+        if(!TextUtils.isEmpty(label)){
+            articleFromDb.setLabel(label);
+        }
+        String categoryId = article.getCategoryId();
+        if(!TextUtils.isEmpty(categoryId)){
+            articleFromDb.setCategoryId(categoryId);
+        }
+        String summary = article.getSummary();
+        if(!TextUtils.isEmpty(summary)){
+            articleFromDb.setSummary(summary);
+        }
+        String cover = article.getCover();
+        if(!TextUtils.isEmpty(cover)){
+            articleFromDb.setCover(cover);
+        }
+        articleFromDb.setUpdateTime(new Date());
+        articleDao.save(articleFromDb);
+        return ResponseResult.SUCCESS("更新成功");
     }
 }

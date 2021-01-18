@@ -8,9 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.stardust.blog.dao.RefreshTokenDao;
 import net.stardust.blog.dao.SettingDao;
 import net.stardust.blog.dao.UserDao;
+import net.stardust.blog.dao.UserNoPasswordDao;
 import net.stardust.blog.pojo.RefreshToken;
 import net.stardust.blog.pojo.Setting;
 import net.stardust.blog.pojo.SobUser;
+import net.stardust.blog.pojo.SobUserNoPassword;
 import net.stardust.blog.response.ResponseResult;
 import net.stardust.blog.response.ResponseState;
 import net.stardust.blog.service.IUserService;
@@ -58,6 +60,8 @@ public class UserServiceImpl extends BaseService implements IUserService {
     @Autowired
     private Gson gson;
 
+    @Autowired
+    private UserNoPasswordDao userNoPasswordDao;
     @Override
     public ResponseResult initManagerAccount(SobUser sobUser, HttpServletRequest request) {
         //检测是否初始化
@@ -517,7 +521,7 @@ public class UserServiceImpl extends BaseService implements IUserService {
         //根据注册日期降序
         Sort sort = new Sort(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<SobUser> all = userDao.listAllUserNoPassword(pageable);
+        Page<SobUserNoPassword> all = userNoPasswordDao.findAll(pageable);
         return ResponseResult.SUCCESS("成功获取用户列表").setData(all);
 
     }

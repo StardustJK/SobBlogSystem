@@ -8,8 +8,10 @@ import java.util.Date;
 
 @Entity
 @Table(name = "tb_user")
-public class SobUser {
+public class SobUserNoPassword {
+    public SobUserNoPassword(){
 
+    }
 
     @Id
     @Column(name = "id")
@@ -18,8 +20,6 @@ public class SobUser {
     @Column(name = "user_name")
     private String userName;
 
-    @Column(name = "password")
-    private String password;
 
     @Column(name = "roles")
     private String roles;
@@ -64,13 +64,6 @@ public class SobUser {
         this.userName = userName;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public String getRoles() {
         return roles;

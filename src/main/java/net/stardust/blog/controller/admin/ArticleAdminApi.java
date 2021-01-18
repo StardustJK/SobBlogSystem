@@ -28,12 +28,14 @@ public class ArticleAdminApi {
         return null;
     }
     @PutMapping("/{articleId}")
-    public ResponseResult updateArticle(@PathVariable("articleId") String articleId){
-        return null;
+    public ResponseResult updateArticle(@PathVariable("articleId") String articleId,
+                                        @RequestBody Article article){
+
+        return articleService.updateArticle(articleId,article);
     }
     @GetMapping("/{articleId}")
     public ResponseResult getArticle(@PathVariable("articleId") String articleId){
-        return null;
+        return articleService.getArticleById(articleId);
     }
 
     @GetMapping("/list/{page}/{size}")
