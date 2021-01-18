@@ -229,4 +229,15 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
         articleDao.save(articleFromDb);
         return ResponseResult.SUCCESS("更新成功");
     }
+
+    @Override
+    public ResponseResult deleteArticle(String articleId) {
+        int result = articleDao.deleteAllById(articleId);
+        if(result>0){
+            return ResponseResult.SUCCESS("删除成功");
+        }
+        else {
+            return ResponseResult.FAILED("文章不存在");
+        }
+    }
 }

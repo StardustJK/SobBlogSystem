@@ -23,21 +23,31 @@ public class ArticleAdminApi {
         return articleService.postArticle(article);
     }
 
+    /**
+     * 做成真的删除
+     * @param articleId
+     * @return
+     */
+    @PreAuthorize("@permission.admin()")
     @DeleteMapping("/{articleId}")
     public ResponseResult deleteArticle(@PathVariable("articleId") String articleId){
-        return null;
+        return articleService.deleteArticle(articleId);
     }
+    @PreAuthorize("@permission.admin()")
     @PutMapping("/{articleId}")
     public ResponseResult updateArticle(@PathVariable("articleId") String articleId,
                                         @RequestBody Article article){
 
         return articleService.updateArticle(articleId,article);
     }
+
+    @PreAuthorize("@permission.admin()")
     @GetMapping("/{articleId}")
     public ResponseResult getArticle(@PathVariable("articleId") String articleId){
         return articleService.getArticleById(articleId);
     }
 
+    @PreAuthorize("@permission.admin()")
     @GetMapping("/list/{page}/{size}")
     public ResponseResult listArticles(@PathVariable("page") int page,@PathVariable("size") int size,
                                        @RequestParam(value = "keyword",required = false)String keyword,
@@ -46,10 +56,12 @@ public class ArticleAdminApi {
         return articleService.listArticles(page,size,keyword,categoryId,state);
     }
 
+    @PreAuthorize("@permission.admin()")
     @PutMapping("/state/{articleId}/{state}")
     public ResponseResult updateArticleStatus(@PathVariable("articleId") String articleId,@PathVariable("state") String state){
         return null;
     }
+    @PreAuthorize("@permission.admin()")
     @PutMapping("/state/{articleId}")
     public ResponseResult updateArticleStatus(@PathVariable("articleId") String articleId){
         return null;
