@@ -60,14 +60,12 @@ public class CategoryAdminApi {
 
     /**
      * 查询分类列表
-     * @param page
-     * @param size
      * @return
      */
     @PreAuthorize("@permission.admin()")
-    @GetMapping("/list/{page}/{size}")
-    public ResponseResult listCategory(@PathVariable("page") int page,@PathVariable("size") int size){
-        return categoryService.listCategory(page,size);
+    @GetMapping("/list")
+    public ResponseResult listCategory(){
+        return categoryService.listCategory();
     }
 
 
